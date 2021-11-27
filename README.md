@@ -9,3 +9,9 @@
 ```
 pip install -r requirements.txt
 ```
+
+## Run
+### Open teminal with project directory and run
+```
+python main.py
+```
