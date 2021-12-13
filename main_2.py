@@ -1,14 +1,15 @@
 import pygame
 import time
-import math
+import math, sys
 from utils import scale_image, blit_rotate_center, blit_text_center
 pygame.font.init()
-
+over_font = pygame.font.Font('freesansbold.ttf', 26)
 run = True
 FPS = 60
 width = 1680
 height = 1030
 window = pygame.display.set_mode((width, height))
+TEXTCOLOR = (255, 255, 255)
 clock = pygame.time.Clock()
 MAIN_FONT = pygame.font.SysFont("comicsans", 44)
 
@@ -36,6 +37,7 @@ class MainCar:
                     (self.x_pos, self.y_pos), 
                     self.angle
                     )
+        pygame.display.update()
 
     def rotate(self, left=False, right=False):
         if left:
@@ -50,6 +52,7 @@ class MainCar:
 
         self.y_pos -= vertical
         self.x_pos -= horizontal
+        print(self.x_pos, self.y_pos)
 
     def move_forward(self):
         self.vel = min(self.vel + self.acceleration, self.max_vel)
@@ -74,6 +77,12 @@ class MainCar:
 # def draw_car(main_car):
 #     draw_car
 
+def drawText(text, font, surface, x, y):
+    textobj = font.render(text, 1, TEXTCOLOR)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
+
 def move_player(player_car):
     keys = pygame.key.get_pressed()
     moved = False
@@ -95,25 +104,34 @@ def move_player(player_car):
 def gameloop():
     main_car = MainCar(
         x_pos=width/2, y_pos=height/2,
-        max_vel=40, rotation_vel=4,
+        max_vel=10, rotation_vel=4,
         image_path='images/car_images/car_small_up.png', 
-        acceleration=5, start_vel=0,
+        acceleration=0.2, start_vel=0,
         angle=0
         )
 
     while run:
-        # clock.tick(FPS)
+        clock.tick(FPS)
+
         window.fill((0,0,0))
+        
         main_car.draw(window)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                break
+                sys.exit()
 
-            if event.type == pygame.KEYDOWN:
-                move_player(main_car)
-
+            # if event.type == pygame.KEYDOWN:
+        move_player(main_car)
+        # over_text = over_font.render(f'{main_car.x_pos=} {main_car.y_pos=}', True, (255, 255, 255))
+        
+        # window.blit(over_text, (200, 250))
+        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', MAIN_FONT, window, 128, 0)
+        pygame.draw.line(
+            window, 'red', (10, 10), (20, 20), width=1
+        )
         pygame.display.update()
+
         
     pygame.quit()
 
