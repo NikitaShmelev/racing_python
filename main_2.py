@@ -27,8 +27,7 @@ class MainCar:
         self.x_pos, self.y_pos = x_pos, y_pos
         self.acceleration = acceleration
 
-    # def move(self):
-    #     pass
+    
 
     def draw(self, window):
         # print(self.img, window)
@@ -37,7 +36,7 @@ class MainCar:
                     (self.x_pos, self.y_pos), 
                     self.angle
                     )
-        pygame.display.update()
+        # pygame.display.update()
 
     def rotate(self, left=False, right=False):
         if left:
@@ -73,6 +72,22 @@ class MainCar:
         self.vel = max(self.vel - self.acceleration / 2, 0)
         self.move()
         
+    def collide(self, mask, x=0, y=0):
+        car_mask = pygame.mask.from_surface(self.img)
+        offset = (int(self.x - x), int(self.y - y))
+        poi = mask.overlap(car_mask, offset)
+        return poi
+    
+
+    def reset(self):
+        self.x, self.y = self.START_POS
+        self.angle = 0
+        self.vel = 0
+
+
+    def bounce(self):
+        self.vel = -self.vel
+        self.move()
 
 # def draw_car(main_car):
 #     draw_car
@@ -128,7 +143,7 @@ def gameloop():
         # window.blit(over_text, (200, 250))
         drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', MAIN_FONT, window, 128, 0)
         pygame.draw.line(
-            window, 'red', (10, 10), (20, 20), width=1
+            window, 'red', (1029, 1679), (20, 20), width=1
         )
         pygame.display.update()
 
