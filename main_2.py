@@ -13,6 +13,9 @@ TEXTCOLOR = (255, 255, 255)
 clock = pygame.time.Clock()
 MAIN_FONT = pygame.font.SysFont("comicsans", 44)
 
+TRACK_BORDER = scale_image(pygame.image.load("images/track-border.png"), 0.9)
+TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
+
 class MainCar:
     def __init__(self, x_pos, y_pos, 
                 max_vel, rotation_vel, 
