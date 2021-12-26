@@ -2,9 +2,7 @@ import pygame
 
 
 def scale_image(img, factor):
-    print(img)
     size = round(img.get_width() * factor), round(img.get_height() * factor)
-    print(size)
     return pygame.transform.scale(img, size)
 
 
