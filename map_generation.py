@@ -1,98 +1,136 @@
-from math import fabs
-from numpy import pi, sin
-import random
+from utils import *
 
-height = 1030
-width = 1680
-angle_round_precision = 5
-map = [
-    [0 for i in range(height)] for i in range(width)
-]
-
-width = 20
-
-
-
-right_road_x = len(map[0]) - 1#start_pos_x + int(width/2)
-left_road_x = right_road_x - width#start_pos_x - int(width/2)
-left_road_y = len(map) - 1
-right_road_y = left_road_y
-
-start_pos_x = right_road_x - round(width/2)
-start_pos_y = left_road_y
-map[start_pos_y][start_pos_x] = 2
-
-map[right_road_y][right_road_x] = 1
-map[left_road_y][left_road_x] = 1
-
-direction = 1 #random.randint(0, 1)
-rand_anle = 30 #random.randrange(15, 90, 15) #random.randint(1, 89)
-print(f'{rand_anle=} {left_road_y=} {left_road_x=}')
-# 0 - left, 1 - right
-
-if direction:
-    rand_anle = round(rand_anle*pi/180, angle_round_precision)
-    second_angle = fabs(round(
-                        pi/2 - rand_anle, angle_round_precision
-                    ))
-    y = round(len(map) - int((start_pos_x + 1) * sin(rand_anle) / (sin(second_angle))))- 1
-    # breakpoint()
-print(f'{y=}')
-vektors = {0: {
-                'right_start': (right_road_x, right_road_y), # start of right road's side
-                'left_start' : (left_road_x, left_road_y) # start of left road's side
-                # ends of the roads will be added later - required len of dicts = 4
-                }
-            }
-x = round(y*sin(second_angle)/sin(rand_anle)) + 1
-y = round(x*sin(rand_anle)/sin(second_angle)) + 1
-vektors[0]['left_end'] = (x,y)
-vektors[0]['right_end'] = (x+4,y)
-# while True:
-#     print(left_road_y, y)
-#     print(map[right_road_y][right_road_x])
-#     if y < left_road_y  and left_road_x > 0:
-#         if round(rand_anle*180/pi) == 45:
-#             left_road_x -= 1
-#             right_road_x -= 1
-#             right_road_y -= 1
-#             left_road_y -= 1
-#         elif round(rand_anle*180/pi) == 30:
-#             if left_road_x != 1:
-#                 left_road_x -= 2
-#                 right_road_x -= 2
-#                 right_road_y -= 1
-#                 left_road_y -= 1
-#             else:
-#                 left_road_x -= 1
-#                 right_road_x -= 1
-#                 right_road_y -= 1
-#                 left_road_y -= 1
-#         if map[left_road_y][left_road_x] != 1 and map[right_road_y][right_road_x] != 1:
+class Map:
+    def __init__(self, x_left, y_left, x_right, y_right):
+        self.images = []
+        self.images_masks = []
+        self.x_left = x_left
+        self.y_left = y_left
+        self.x_right = x_right
+        self.y_right = y_right
+        self.road_orientation = -1 # -1 = up(1=down) if road_turn == false else -1=left,1=right
+        self.road_turn = False
         
-#             map[left_road_y][left_road_x] = 1 
-#             map[right_road_y][right_road_x] = 1
-#     else:
+        self.right_side_up_img = scale_image(pygame.image.load('images/bumpers/Road_14x14_right_side.png'), 1)
+        self.left_side_up_img = scale_image(pygame.image.load('images/bumpers/Road_14x14_left_side.png'), 1)
+        self.bottom_image = scale_image(pygame.image.load('images/bumpers/Road_2x14_bottom_bumper.png'), 1)
+        self.top_image = scale_image(pygame.image.load('images/bumpers/Road_2x14_top_bumper.png'), 1)
+    def draw_map(self, window):
+        for img, pos in self.images:
+            window.blit(img, pos)
+
+    def step_straight_y(self, left=True, right=True):
+        # road up 
+        if left:
+            self.y_left = self.generate_straight_road_y(
+                                self.x_left, self.y_left, self.road_orientation, 
+                                60, -80, side_img=self.left_side_up_img
+                                )
+        # młody fix image size
+        if right:          
+            młody_fix = -self.right_side_up_img.get_width()
+
+            self.y_right = self.generate_straight_road_y(
+                                self.x_right + młody_fix, self.y_right, self.road_orientation, 
+                                -220, -80, side_img=self.right_side_up_img
+                                )
     
-#         print('else')
-#         # left_road_y += 1
-#         # left_road_x += 1
-#         # right_road_y += 1
-#         # right_road_x += 1
-#         num_key = list(vektors.keys())[-1]
-#         len_of_coords = len(vektors[num_key].keys())
-#         if len_of_coords != 4:
-#             vektors[num_key]['right_end'] = (right_road_x, right_road_y) # end
-#             vektors[num_key]['left_end'] = (left_road_x, left_road_y) # end
-#         else:
-#             num_key += 1
-#             vektors[num_key]['right_start'] = vektors[num_key-1]['right_end']
-#             vektors[num_key]['left_start'] = vektors[num_key-1]['left_end']
-#         break
+    def generate_straight_road_y(self, x, y, direction, x_fix, y_fix, side_img):
+        side_mask = pygame.mask.from_surface(side_img)
+        self.images_masks.append((side_mask, x, y, x_fix, y_fix))
+        self.images.append((side_img, (x, y)))
+        y += direction*side_img.get_height()
+        return y
 
-# for line in map:
-#     print(line)
-for key in vektors.keys():
-    print(vektors[key])
+    def __change_direction__(self, road_turn, n):
+        if self.road_turn == road_turn:
+            self.road_turn = False if road_turn else True
+            self.road_orientation *= n
+        else:
+            self.road_turn = road_turn
+            self.road_orientation *= n
 
-# print(y)
+    def __check_window__(self, width, height):
+        if self.road_turn and self.road_orientation == 1:
+            #right
+            if self.x_right + self.right_side_up_img.get_width() <= width:
+                if self.y_right > -100:
+                    return True
+        elif self.road_turn and self.road_orientation == -1:
+            # left
+            pass
+        elif not self.road_turn and self.road_orientation == -1:
+            # up
+            pass
+        elif not self.road_turn and self.road_orientation == 1:
+            # down
+            pass
+        return False
+    
+
+    def check_turn(self, width, height, road_turn, n):
+        self.__change_direction__(road_turn, n)
+        if self.__check_window__(width, height):
+            # add road_collision
+            if self.__road_collision__(
+                                self.bottom_image,
+                                self.x_right, self.y_right):
+                return True
+        else:
+            pass
+
+
+    def __generate_straight_road_x__(self, x, y, road_orientation, x_fix, y_fix, img):
+        print(y)
+        self.images.append((img, (x, y)))
+        self.images_masks.append((pygame.mask.from_surface(img), x, y, 
+                                                                        x_fix, y_fix)) 
+                                                                        #x_fix; y fix
+        x += road_orientation*img.get_width()
+        return x
+
+    def step_straight_x(self, left=True, right=True):
+        if right:
+            self.x_right = self.__generate_straight_road_x__(
+                                                self.x_right, self.y_right, 
+                                                self.road_orientation,
+                                                -70, 50, self.bottom_image)
+        if left:
+            self.x_left = self.__generate_straight_road_x__(
+                                                self.x_left, self.y_left, 
+                                                self.road_orientation,
+                                                -50, 100, self.top_image)
+
+    def horizontal_turn(self):
+        if self.road_turn and self.road_orientation == 1:
+            #right
+            self.step_straight_y(right=False) # left side up
+            self.y_left -= self.images[-1][0].get_height()
+            self.y_right += self.images[-1][0].get_height()
+            self.step_straight_x(right=False)
+            self.step_straight_x()
+        elif self.road_turn and self.road_orientation == -1:
+            # left
+            pass
+       
+# def generate_straight_road_x(x, y, road_orientation, x_fix, y_fix):
+#     right_side_turn = scale_image(pygame.image.load("images/bumpers/Road_2x14_top_bumper.png"), 1)
+#     images.append((right_side_turn, (x, y)))
+#     images_masks.append((pygame.mask.from_surface(right_side_turn), x, y, 
+#                                                                     x_fix, y_fix)) 
+#                                                                     #x_fix; y fix
+#     x += road_orientation*right_side_turn.get_width()
+#     return x
+
+    def __road_collision__(self, road_image, x, y):
+        mask = pygame.mask.from_surface(road_image)
+        for i in self.images_masks:
+            image_x = i[1]
+            image_y = i[2]
+            offset = (int(-image_x+x), int(-image_y+y))
+            img_mask = i[0]
+            poi = mask.overlap(img_mask, offset)
+            if poi != None:
+                return False
+        else:
+            return True
