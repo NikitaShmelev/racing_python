@@ -78,7 +78,7 @@ class MainCar:
         self.vel = max(self.vel - self.acceleration / 2, 0)
         self.move()
         
-    def collide(self, mask, x=0, y=0, x_fix=50, y_fix=0):
+    def collide(self, mask, x=0, y=0, x_fix=0, y_fix=0):
         car_mask = pygame.mask.from_surface(self.img)
         offset = (int(-x+self.x_pos + x_fix), int(-y+self.y_pos+y_fix))
         poi = car_mask.overlap(mask, offset)
@@ -154,21 +154,21 @@ def road_collision(road_image, x, y):
     else:
         return True
 
-def generate_straight_road_y(x, y, direction):
-    left_side = scale_image(pygame.image.load("images/road/road_left.png"), 1)
+def generate_straight_road_y(x, y, direction, x_fix, y_fix):
+    left_side = scale_image(pygame.image.load("images/bumpers/Road_14x2_left_bumper.png"), 1)
     left_side_mask = pygame.mask.from_surface(left_side)
-    images_masks.append((left_side_mask, x, y, 50, 0))
+    images_masks.append((left_side_mask, x, y, x_fix, y_fix))
     images.append((left_side, (x, y)))
     y += direction*left_side.get_height()
     return y
 
-def generate_straight_road_x(x, y, direction):
-    right_side_turn = scale_image(pygame.image.load("images/road/road_3.png"), 1)
+def generate_straight_road_x(x, y, road_orientation, x_fix, y_fix):
+    right_side_turn = scale_image(pygame.image.load("images/bumpers/Road_2x14_top_bumper.png"), 1)
     images.append((right_side_turn, (x, y)))
     images_masks.append((pygame.mask.from_surface(right_side_turn), x, y, 
-                                                                    0, 80)) 
+                                                                    x_fix, y_fix)) 
                                                                     #x_fix; y fix
-    x += direction*right_side_turn.get_width()
+    x += road_orientation*right_side_turn.get_width()
     return x
 
 def generate_map(main_car):
@@ -182,12 +182,14 @@ def generate_map(main_car):
     # y_left, y_right = generate_straight_road_x(main_car)
     
     y_left = generate_straight_road_y(
-        x_left, y, road_orientation
+        x_left, y, road_orientation,
+        50, 0
         # direction -1 = up; +1 = down
         
     )
     y_right = generate_straight_road_y(
-        x_right, y, road_orientation
+        x_right, y, road_orientation,
+        45, -60
         # direction -1 = up; +1 = down
         
     )
@@ -206,44 +208,51 @@ def generate_map(main_car):
             right_side = scale_image(pygame.image.load("images/road/Turn_right_1.png"), 1)
             if road_collision(right_side, x_right, y_right):
                 
-                y_left = generate_straight_road_y(x_left, y_left, road_orientation)
-                    
+                y_left = generate_straight_road_y(x_left, y_left, road_orientation, 50, 0)
 
-                left_side_up = scale_image(pygame.image.load("images/road/road_left.png"), 1)
+                y_right = generate_straight_road_y(x_right, y_right, road_orientation, 45, -60)
+                
+
+                left_side_up = scale_image(pygame.image.load("images/bumpers/Road_14x2_left_bumper.png"), 1)
+                # generate_straight_road_x(x_left, y_left, road_orientation, 60, 0)
                 images.append((left_side_up, (x_left, y_left)))
                 images_masks.append((pygame.mask.from_surface(left_side_up), x_left, y_left, 50, 0))
 
                 corner_left = scale_image(pygame.image.load("images/road/Road_turn_corner_5.png"), 1)
                 images.append((corner_left, (x_left-corner_left.get_width()+10, y_left-corner_left.get_height()+10)))
-                images_masks.append(
-                    (pygame.mask.from_surface(corner_left),
-                    x_left-corner_left.get_width(), y_left-corner_left.get_height(), 0, 0)
-                    )
                 x_left += 10
                 y_left -= 3
+
+
                 road_orientation = 1
                 road_turn = False
 
-                left_side_turn = scale_image(pygame.image.load("images/road/road_3.png"), 1)
-                images.append((left_side_turn, (x_left, y_left)))
-                images_masks.append((pygame.mask.from_surface(left_side_turn), x_left, y_left, 
-                                                                                0, 100)) 
+                # left_side_turn = scale_image(pygame.image.load("images/bumpers/Road_2x14_top_bumper.png"), 1)
+                # images.append((left_side_turn, (x_left, y_left)))
+                # images_masks.append((pygame.mask.from_surface(left_side_turn), x_left, y_left, 
+                #                                                                 -50, 100)) 
                                                                                 #x_fix; y fix
-                x_left += left_side_turn.get_width()
-                y_left -= left_side_turn.get_height()
+                x_left = generate_straight_road_x(x_left, y_left, road_orientation, -50, 100)
+                x_left = generate_straight_road_x(x_left, y_left, road_orientation, -50, 100)
 
+                # x_left = generate_straight_road_x(x_left, y_left, direction, -50, 100)
 
+            
                 corner_right = scale_image(pygame.image.load("images/road/Road_turn_corner_5.png"), 1)
-                images.append((corner_right, (x_right-corner_right.get_width()+15, y_right)))
-                images_masks.append(
-                    (pygame.mask.from_surface(corner_right),x_right-corner_right.get_width(), y_right, 80, 100)
+                images.append(
+                    (corner_right, (
+                        x_right-corner_right.get_width()+13, y_right+37
+                        ))
                     )
+                # images_masks.append(
+                #     (pygame.mask.from_surface(corner_right),x_right-corner_right.get_width(), y_right, -10, -100)
+                #     )
                 x_right += 15
-                y_right += 87
+                y_right += 87+37
 
                 
-                x_right = generate_straight_road_x(x_right, y_right, direction)
-                x_right = generate_straight_road_x(x_right, y_right, direction)
+                # x_right = generate_straight_road_x(x_right, y_right, direction)
+                x_right = generate_straight_road_x(x_right, y_right, road_orientation, -70, 50)
                 # y_right -= right_side_turn.get_height()
 
             else:
@@ -261,7 +270,7 @@ def gameloop():
         x_pos=100, y_pos=height-100,
         max_vel=5, rotation_vel=4,
         image_path='images/car_images/car_small_up.png', 
-        acceleration=0.2, start_vel=0,
+        acceleration=0.2*5, start_vel=0,
         angle=0
         )
     generate_map(main_car)
