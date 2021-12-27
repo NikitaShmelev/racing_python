@@ -168,7 +168,7 @@ def draw_objects(images):
 
 def generate_map(main_car, map):
     map.step_straight_y()
-    map.step_straight_y()
+    # map.step_straight_y()
     
    
 
@@ -176,15 +176,23 @@ def generate_map(main_car, map):
     # while True:
     
     # if y > 0 and y < height:
-    direction = 3#random.randint(1,3)
+    direction = 2#random.randint(1,3)
     
         # 1 - left, 2 - straight, 3 - right
     if direction == 3:
         if map.check_turn(width, height, True, -1):
             map.horizontal_turn()
         else:
-            # change direction 
             print('nie git')
+    elif direction == 1:
+        if map.check_turn(width, height, True, 1):
+            map.horizontal_turn()
+        else:
+            print('nie git')
+    else:
+        map.step_straight_y()
+            # change direction 
+            
         # left_side = scale_image(pygame.image.load("images/road/Turn_left_1.png"), 1)
         # if x_left - left_side.get_width() <= 2*left_side.get_width():
         #     # no widht for turn left
@@ -213,7 +221,7 @@ def gameloop():
     #         break
     #     else:
     #         continue 
-    x_pos = 1450
+    x_pos = 1450 #- 140
     y_pos = height-100
     main_car = MainCar(
         x_pos=x_pos, y_pos= y_pos,
