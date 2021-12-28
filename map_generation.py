@@ -1,7 +1,8 @@
 from utils import *
 
 class Map:
-    def __init__(self, x_left, y_left, x_right, y_right):
+    def __init__(self, x_left, y_left, x_right, y_right,
+                window_width, width_height):
         self.images = []
         self.images_masks = []
         self.x_left = x_left
@@ -11,12 +12,17 @@ class Map:
         self.road_orientation = -1 # -1 = up(1=down) if road_turn == false else -1=left,1=right
         self.road_turn = False
         self.changed = False
+        
 
+        self.window_width = window_width
+        self.width_height = width_height
         self.right_side_up_img = scale_image(pygame.image.load('images/bumpers/Road_14x14_right_side.png'), 1)
         self.left_side_up_img = scale_image(pygame.image.load('images/bumpers/Road_14x14_left_side.png'), 1)
         self.bottom_image = scale_image(pygame.image.load('images/bumpers/Road_2x14_bottom_bumper.png'), 1)
         self.top_image = scale_image(pygame.image.load('images/bumpers/Road_2x14_top_bumper.png'), 1)
-    
+        self.img_width = self.bottom_image.get_width()
+        self.img_height = self.left_side_up_img.get_height()
+
     def draw_map(self, window):
         for img, pos in self.images:
             window.blit(img, pos)
@@ -32,7 +38,7 @@ class Map:
                                     )
             # młody fix image size
             if right:          
-                młody_fix = -self.right_side_up_img.get_width()
+                młody_fix = -self.img_width
 
                 self.y_right = self.generate_straight_road_y(
                                     self.x_right + młody_fix, self.y_right, self.road_orientation, 
@@ -40,23 +46,29 @@ class Map:
                                     )
         else:
             if self.y_left < self.y_right:
-                self.horizontal_turn(orientation_fix=-1)
-                self.y_left += -self.left_side_up_img.get_height()
-                self.y_right += -self.left_side_up_img.get_height()
-                self.y_left = self.generate_straight_road_y(
-                                    self.x_left, self.y_left, self.road_orientation, 
-                                   85, -50, side_img=self.left_side_up_img
-                                    )
-                self.x_right += -self.top_image.get_width()
-                self.y_right = self.generate_straight_road_y(
-                                    self.x_right + 0, self.y_right, self.road_orientation, 
-                                    -220, -80, side_img=self.right_side_up_img
-                                    )
-                self.y_right = self.generate_straight_road_y(
-                                    self.x_right + 0, self.y_right, self.road_orientation, 
-                                    -220, -80, side_img=self.right_side_up_img
-                                    )
-                print(self.y_right, self.y_left)
+                if self.road_orientation:
+                    
+                    self.horizontal_turn(orientation_fix=1)
+                else:
+                    self.horizontal_turn(orientation_fix=-1)
+                    self.y_left += -self.img_height
+                    self.y_right += -self.img_height
+                    self.y_left = self.generate_straight_road_y(
+                                        self.x_left, self.y_left, self.road_orientation, 
+                                    85, -50, side_img=self.left_side_up_img
+                                        )
+                    self.x_right += -self.img_width
+                    self.y_right = self.generate_straight_road_y(
+                                        self.x_right, self.y_right, self.road_orientation, 
+                                        -220, -80, side_img=self.right_side_up_img
+                                        )
+                    self.y_right = self.generate_straight_road_y(
+                                        self.x_right + 0, self.y_right, self.road_orientation, 
+                                        -220, -80, side_img=self.right_side_up_img
+                                        )
+                    self.x_right += self.img_width
+                    print(self.y_right, self.y_left)
+                
 
             else:
                 # CHECK THIS SHIT 
@@ -81,28 +93,28 @@ class Map:
             self.road_turn = road_turn
             self.road_orientation *= n
 
-    def __check_window__(self, width, height):
+    def __check_window__(self):
         if self.road_turn and self.road_orientation == 1:
             #right
-            if self.x_right + self.right_side_up_img.get_width()*2 <= width:
+            if self.x_right + self.img_width*2 <= self.window_width:
                 if self.y_right > -100:
                     return True
-            elif self.x_right - self.right_side_up_img.get_width()*2 >= 0:
+            elif self.x_right - self.img_width*2 >= 0:
                 self.road_orientation = -1
                 self.changed = True
                 return True
             else:
                 return False
         elif self.road_turn and self.road_orientation == -1:
-            if self.x_right - self.right_side_up_img.get_width()*2 >= 0:
+            if self.x_right - self.img_width*2 >= 0:
                 if self.y_left > -100:
                     self.changed = True
                     return True
         elif not self.road_turn and self.road_orientation == -1:
-            img_h = self.left_side_up_img.get_height()
-            if (self.y_right - img_h and self.y_right - img_h) > -100:
+            #up
+            if (self.y_right - self.img_height and self.y_right - self.img_height) > -100:
                 return True
-            elif (self.y_right + img_h and self.y_right + img_h) < height:
+            elif (self.y_right + self.img_height and self.y_right + self.img_height) < self.width_height:
                 self.road_orientation = 1
                 return True
             else:
@@ -110,12 +122,13 @@ class Map:
         elif not self.road_turn and self.road_orientation == 1:
             # down
             pass
+        
         return False
     
 
-    def check_turn(self, width, height, road_turn, n):
+    def check_turn(self, road_turn, n):
         self.__change_direction__(road_turn, n)
-        if self.__check_window__(width, height):
+        if self.__check_window__():
             # add road_collision
             if self.__road_collision__(
                                 self.bottom_image,
@@ -184,8 +197,8 @@ class Map:
                 'y_right': self.images[-1][0].get_height()
                 }
             x_fix={
-                'x_right': -self.bottom_image.get_width(), 
-                'x_left': -self.bottom_image.get_width()
+                'x_right': -self.img_width, 
+                'x_left': -self.img_width
             }
             self.step_straight_x(left=False, x_fix=x_fix, y_fix=y_fix)
             self.step_straight_x()

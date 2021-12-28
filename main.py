@@ -65,7 +65,7 @@ def generate_map(main_car, map):
     
         # 1 - left, 2 - straight, 3 - right
     if direction == 3:
-        if map.check_turn(width, height, True, -1):
+        if map.check_turn(True, -1):
             if map.road_turn:
                 map.horizontal_turn()
             else:
@@ -74,7 +74,7 @@ def generate_map(main_car, map):
             print('nie git')
         
     elif direction == 1:
-        if map.check_turn(width, height, True, 1):
+        if map.check_turn(True, 1):
             if map.road_turn:
                 map.horizontal_turn()
             else:
@@ -88,9 +88,20 @@ def generate_map(main_car, map):
 
 
     ### turn left after right turn 
-    direction = 1
+    direction = 3
     if direction == 1:
-        if map.check_turn(width, height, True, 1):
+        if map.check_turn(True, 1):
+            if map.road_turn:
+                map.horizontal_turn()
+            else:
+                map.step_straight_y(left=False, right=False)
+
+        else:
+            print('nie git')
+
+    # ### turn right after left turn 
+    if direction == 3:
+        if map.check_turn(True, 1):
             if map.road_turn:
                 map.horizontal_turn()
             else:
@@ -109,20 +120,21 @@ def gameloop():
     #         break
     #     else:
     #         continue 
-    x_pos = 1450 - 140*3
+    x_pos = 1450 - 140*9
     y_pos = height-100
     main_car = MainCar(
         x_pos=x_pos, y_pos= y_pos,
         max_vel=5, rotation_vel=4,
         image_path='images/car_images/car_small_up.png', 
-        acceleration=0.2*5, start_vel=0,
-        angle=0
-        )
+        acceleration=0.2*5, start_vel=0, angle=0)
     map = Map(
         x_left=main_car.x_pos - 50,
         y_left=main_car.y_pos,
         x_right=main_car.x_pos + 90,
-        y_right=main_car.y_pos
+        y_right=main_car.y_pos, 
+        window_width=width,
+        width_height=height,
+
     )
 
     generate_map(main_car, map)
