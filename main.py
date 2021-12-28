@@ -33,6 +33,7 @@ def handle_collision(main_car, images_masks):
 
 
 def move_player(player_car):
+    #ruch samochodu we wszystkie strony + jazda
     keys = pygame.key.get_pressed()
     moved = False
     if keys[pygame.K_a]:
@@ -48,6 +49,22 @@ def move_player(player_car):
     if not moved:
         player_car.reduce_speed()
 
+    # if keys[pygame.K_w]:
+    #     moved = True
+    #     player_car.move_forward()
+    #     if keys[pygame.K_a]:
+    #         player_car.rotate(left=True)
+    #     if keys[pygame.K_d]:
+    #         player_car.rotate(right=True)
+    # if keys[pygame.K_s]:
+    #     moved = True
+    #     player_car.move_backward()
+    #     if keys[pygame.K_a]:
+    #         player_car.rotate(right=True)
+    #     if keys[pygame.K_d]:
+    #         player_car.rotate(left=True)
+    # if not moved:
+    #     player_car.reduce_speed()
 
 def draw_objects(images):
     for img, pos in images:
@@ -140,30 +157,28 @@ def gameloop():
         image_path='images/car_images/car_small_up.png', 
         acceleration=0.2*5, start_vel=0, angle=0)
     map = Map(
-        x_left=main_car.x_pos - 50,
-        y_left=main_car.y_pos,
+        x_left=main_car.x_pos - 50, #x lewej strony drogi
+        y_left=main_car.y_pos,      #y lewej strony drogi
         x_right=main_car.x_pos + 90,
         y_right=main_car.y_pos, 
         window_width=width,
         width_height=height,
-
     )
 
     generate_map(main_car, map)
     while run:
-        clock.tick(FPS)
+        clock.tick(FPS) #dzięki tej funkcji gra działa wolniej
 
-        window.fill((0,0,0))
+        window.fill((0,0,0)) #zaciera ślady obiektów które poruszają się
 
-        map.draw_map(window)
-        main_car.draw(window)
+        map.draw_map(window) #służy do rysowania mapy
+        main_car.draw(window) #narysowanie w oknie samochodzika
 
-        for event in pygame.event.get():
+        for event in pygame.event.get(): #funkcja służy do zamykania gry
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-            # if event.type == pygame.KEYDOWN:
         move_player(main_car)
 
         drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', MAIN_FONT, window, 828, 0)
