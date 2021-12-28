@@ -86,7 +86,7 @@ def generate_map(main_car, map):
     # while True:
     
     # if y > 0 and y < height:
-    direction = 1#random.randint(1,3)
+    direction = 3#random.randint(1,3)
     
         # 1 - left, 2 - straight, 3 - right
     if direction == 3:
@@ -114,35 +114,35 @@ def generate_map(main_car, map):
 ############################################################
     # DONE
     ### turn left after right turn 
-    # direction = 1
-    # if direction == 1:
-    #     print('here')
-    #     if map.check_turn(True, 1):
-    #         if map.road_turn:
-    #             map.horizontal_turn()
-    #         else:
-    #             print('here')
-
-    #             map.step_straight_y(left=False, right=False)
-
-    #     else:
-    #         print('ADD FINISH HERE')
-############################################################
-
-    ### turn right after left turn
-    direction = 3
-    if direction == 3:
-        print(map.road_turn, map.road_orientation)
+    direction = 1
+    if direction == 1:
+        print('here')
         if map.check_turn(True, 1):
-
             if map.road_turn:
                 map.horizontal_turn()
             else:
-                print('git!!!')
+                print('here')
+
                 map.step_straight_y(left=False, right=False)
 
         else:
-            print('nie git')
+            print('ADD FINISH HERE')
+############################################################
+
+    ### turn right after left turn
+    # direction = 3
+    # if direction == 3:
+    #     print(map.road_turn, map.road_orientation)
+    #     if map.check_turn(True, 1):
+
+    #         if map.road_turn:
+    #             map.horizontal_turn()
+    #         else:
+    #             print('git!!!')
+    #             map.step_straight_y(left=False, right=False)
+
+    #     else:
+    #         print('nie git')
 
 
 def gameloop():

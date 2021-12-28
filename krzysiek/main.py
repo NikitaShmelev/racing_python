@@ -1,23 +1,20 @@
 import pygame
-from pygame.transform import rotate
-pygame.init() #initializes the Pygame
-from pygame.locals import* #import all modules from Pygame
-
+import time
+import random
+import math, sys
+from map_generation import Map
+from car import MainCar
+from utils import scale_image, blit_rotate_center, blit_text_center
+pygame.font.init()
+over_font = pygame.font.Font('freesansbold.ttf', 26)
+run = True
+FPS = 60
 width = 1680
-height = 1030
+height = 980
+window = pygame.display.set_mode((width, height))
 TEXTCOLOR = (255, 255, 255)
-screen = pygame.display.set_mode((width, height))
-over_font = pygame.font.Font('freesansbold.ttf', 64)
-car_path = 'images/car_images/car_small_right.png'
-
-
-#changing title of the game window
-pygame.display.set_caption('Racing Beast')
-
-# def lower_speed_to_zero(x_speed, y_speed):
-#     x_speed = 0
-#     y_speed = 0
-
+clock = pygame.time.Clock()
+MAIN_FONT = pygame.font.SysFont("comicsans", 44)
 
 
 def drawText(text, font, surface, x, y):
@@ -26,162 +23,183 @@ def drawText(text, font, surface, x, y):
     textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
-def game_over_text():
-    over_text = over_font.render("Pojebało pana", True, (255, 255, 255))
-    screen.blit(over_text, (200, 250))
 
-def rot_center(image, angle):
-    """rotate an image while keeping its center and size"""
-    orig_rect = image.get_rect()
-    rot_image = pygame.transform.rotate(image, angle)
-    rot_rect = orig_rect.copy()
-    rot_rect.center = rot_image.get_rect().center
-    rot_image = rot_image.subsurface(rot_rect).copy()
-    return rot_image
+def handle_collision(main_car, images_masks):
+    for mask in images_masks:
+        x_fix = mask[3]
+        y_fix = mask[4]
+        if main_car.collide(mask=mask[0], x=mask[1], y=mask[2], x_fix=x_fix, y_fix=y_fix) != None:
+            main_car.bounce()
 
-#defining our gameloop function
+
+def move_player(player_car):
+    #ruch samochodu we wszystkie strony + jazda
+    keys = pygame.key.get_pressed()
+    moved = False
+################################# remove this shit 
+    if keys[pygame.K_a]:
+        player_car.rotate(left=True)
+    if keys[pygame.K_d]:
+        player_car.rotate(right=True)
+    if keys[pygame.K_w]:
+        moved = True
+        player_car.move_forward()
+    if keys[pygame.K_s]:
+        moved = True
+        player_car.move_backward()
+    if not moved:
+        player_car.reduce_speed()
+ #################################
+
+
+################################# add this shit
+    # if keys[pygame.K_w]:
+    #     moved = True
+    #     player_car.move_forward()
+    #     if keys[pygame.K_a]:
+    #         player_car.rotate(left=True)
+    #     if keys[pygame.K_d]:
+    #         player_car.rotate(right=True)
+    # if keys[pygame.K_s]:
+    #     moved = True
+    #     player_car.move_backward()
+    #     if keys[pygame.K_a]:
+    #         player_car.rotate(right=True)
+    #     if keys[pygame.K_d]:
+    #         player_car.rotate(left=True)
+    # if not moved:
+    #     player_car.reduce_speed()
+################################
+def draw_objects(images):
+    for img, pos in images:
+        window.blit(img, pos)
+
+
+def generate_map(main_car, map):
+    map.step_straight_y()
+    map.step_straight_y()
+    map.step_straight_y()
+    map.step_straight_y()
+
+    # map.step_straight_y()
+    # map.step_straight_y()
+    # while True:
+    
+    # if y > 0 and y < height:
+    direction = 3#random.randint(1,3)
+    
+        # 1 - left, 2 - straight, 3 - right
+    if direction == 3:
+        if map.check_turn(True, -1):
+            if map.road_turn:
+                map.horizontal_turn()
+            else:
+                
+                map.step_straight_y()
+        else:
+            pass
+    elif direction == 1:
+        if map.check_turn(True, 1):
+            if map.road_turn:
+                map.horizontal_turn()
+            else:
+                map.step_straight_y()
+        else:
+            pass
+            print('ADD FINISH HERE')
+    else:
+        map.step_straight_y()
+            # change direction 
+
+############################################################
+    # DONE
+    ### turn left after right turn 
+    direction = 1
+    if direction == 1:
+        print('here')
+        if map.check_turn(True, 1):
+            if map.road_turn:
+                map.horizontal_turn()
+            else:
+                print('here')
+
+                map.step_straight_y(left=False, right=False)
+
+        else:
+            print('ADD FINISH HERE')
+############################################################
+
+    ### turn right after left turn
+    # direction = 3
+    # if direction == 3:
+    #     print(map.road_turn, map.road_orientation)
+    #     if map.check_turn(True, 1):
+
+    #         if map.road_turn:
+    #             map.horizontal_turn()
+    #         else:
+    #             print('git!!!')
+    #             map.step_straight_y(left=False, right=False)
+
+    #     else:
+    #         print('nie git')
+
+
 def gameloop():
+    # while True:
+    #     x_pos = random.randint(100, width-70)
+    #     if x_pos + 90 < width - 70:
+    #         break
+    #     elif  x_pos - 50 > 100:
+    #         break
+    #     else:
+    #         continue 
+    x_pos = 1450 - 140*7
+    y_pos = height-100
+    main_car = MainCar(
+        x_pos=x_pos, y_pos= y_pos,
+        max_vel=5, rotation_vel=4,
+        image_path='images/car_images/car_small_up.png', 
+        acceleration=0.2*5, start_vel=0, angle=0)
+    map = Map(
+        x_left=main_car.x_pos - 50, #x lewej strony drogi
+        y_left=main_car.y_pos,      #y lewej strony drogi
+        x_right=main_car.x_pos + 90,
+        y_right=main_car.y_pos, 
+        window_width=width,
+        width_height=height,
+    )
 
-    #setting background image
-    # bg = pygame.image.load('car game/bg.png')
-
-    maincarX_start = 350
-    maincarY_start = 495
-    # setting our player
-    maincar = pygame.image.load(car_path)
-    maincarX = maincarX_start
-    maincarY = maincarY_start
-    rotate_down, rotate_up = False, True
-    x_speed = 0
-    y_speed = 0
-    
-    x_coords_fix = 100
-    y_coords_fix = 180
-    
-    rotate_angle = 0
-    max_angle = 20
-    
-    angle_round_precision = 2
-    speed_round_precision = 4
-    rotate_direction = 0 # 1 - up (left but), -1 - down(right but)
-    rotate = False
-
-    font = pygame.font.SysFont(None, 30)
-    run = True
+    generate_map(main_car, map)
     while run:
-        for event in pygame.event.get():
+        clock.tick(FPS) #dzięki tej funkcji gra działa wolniej
+
+        window.fill((0,0,0)) #zaciera ślady obiektów które poruszają się
+
+        map.draw_map(window) #służy do rysowania mapy
+        main_car.draw(window) #narysowanie w oknie samochodzika
+
+        for event in pygame.event.get(): #funkcja służy do zamykania gry
             if event.type == pygame.QUIT:
-                run = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    # if y_speed != 0:
-    
-                    if x_speed != 0:
-                        if rotate_angle > -max_angle:
-                            rotate = True
-                            rotate_direction = -1
-                            rotate_angle -= 1
-                            maincar = rot_center(pygame.image.load(car_path), rotate_angle)
-                    
-                        y_speed = round(y_speed+0.1, speed_round_precision)
-                    
-                    
-                    
-            
-                if event.key == pygame.K_LEFT:
-                    # if y_speed != 0:
-                    
-                    if x_speed != 0:
-                        if rotate_angle > -max_angle:
-                            rotate = True
-                            rotate_angle += 1
-                            rotate_direction = 1
-                            maincar = rot_center(pygame.image.load(car_path), rotate_angle)
-                    
-                        y_speed = round(y_speed-0.1, speed_round_precision)
-                
-                if event.key == pygame.K_UP:
-                    x_speed = round(x_speed+0.5, speed_round_precision)
-                    # if rotate_down:
-                    # if not y_speed:
-                    #     maincar = pygame.transform.rotate(maincar, 180)
-                            
-                            # rotate_down, rotate_up = False, True
-                    
-                    
+                pygame.quit()
+                sys.exit()
 
-                    
-                if event.key == pygame.K_DOWN:
-                    # if rotate_up:
-                    # if not y_speed:
-                    #     maincar = pygame.transform.rotate(maincar, 180)
-                            # rotate_up, rotate_down = False, True
-                    x_speed = round(x_speed-0.5, speed_round_precision)
-                
-                if event.key == ord('r'):
-                    x_speed = y_speed = 0
-                    rotate_angle = 0
-                    maincar = rot_center(pygame.image.load(car_path), rotate_angle)
-                    maincarX, maincarY = maincarX_start, maincarY_start
-                    
-                    
-            print(maincarX, maincarY)
+        move_player(main_car)
 
-
-        #CHANGING COLOR WITH RGB VALUE, RGB = RED, GREEN, BLUE 
-        screen.fill((0,0,0))
-
-
-        #displaying our main car
-        
-
-       
-        #updating the values
-        maincarX += x_speed
-        if rotate_angle > 0:
-            if rotate_angle < max_angle:
-                if rotate_angle != 0:
-                    # rotate_angle = round(rotate_angle + 0.01*rotate_direction, angle_round_precision)
-                    maincar = rot_center(pygame.image.load(car_path), rotate_angle)
-                    y_speed = round(y_speed-0.001, speed_round_precision)
-                    x_speed = round(x_speed-0.001, speed_round_precision)
-
-                else:
-                    rotate_direction = 0
-        elif rotate_angle < 0:
-            if rotate_angle > -max_angle:
-                if rotate_angle != 0:
-                    # rotate_angle = round(rotate_angle + 0.01*rotate_direction, angle_round_precision)
-                    maincar = rot_center(pygame.image.load(car_path), rotate_angle)
-                    y_speed = round(y_speed+0.001, speed_round_precision)
-                    x_speed = round(x_speed+0.001, speed_round_precision)
-                else:
-                    rotate_direction = 0
-        if maincarX <= -10:
-            maincarX = -10
-            x_speed, y_speed = 0, 0.1
-            game_over_text()
-            
-        elif maincarX >= width - x_coords_fix:
-            maincarX = width - x_coords_fix
-            x_speed, y_speed = 0, 0.1
-            game_over_text()
-
-        y_speed = y_speed if x_speed != 0 else 0
-        maincarY += y_speed 
-        if maincarY <= 0:
-            maincarY = 0
-            x_speed, y_speed = 0, 0
-            game_over_text()
-        elif maincarY >= height - y_coords_fix:
-            maincarY = height - y_coords_fix
-            x_speed, y_speed = 0, 0
-            game_over_text()
-        screen.blit(maincar,(maincarX,maincarY))
-        drawText('x speed: %s' % (x_speed), font, screen, 128, 0)
-        drawText('y speed: %s' % (y_speed), font, screen, 128, 20)
-        drawText('rotate angle: %s' % (rotate_angle), font, screen, 128, 40)
+        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', 
+                    MAIN_FONT, window, 828, 0) # draw some text in window 
+        handle_collision(
+            main_car,
+            map.images_masks
+            # game_info
+            ) # crash check
         pygame.display.update()
+
+        
+    pygame.quit()
+
+
+
 
 if __name__ == "__main__":
     gameloop()
