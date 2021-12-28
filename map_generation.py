@@ -36,8 +36,9 @@ class Map:
                                     self.x_left, self.y_left, self.road_orientation, 
                                     60, -80, side_img=self.left_side_up_img
                                     )
-            # młody fix image size
-            if right:          
+            
+            if right:     
+                # młody fix image size     
                 młody_fix = -self.img_width
 
                 self.y_right = self.generate_straight_road_y(
@@ -54,7 +55,6 @@ class Map:
                 else:
                     # start from right
                     if self.__check_window__():
-                        print('git')
                         self.horizontal_turn(orientation_fix=-1)
                         self.y_left += -self.img_height
                         self.y_right += -self.img_height
@@ -101,6 +101,7 @@ class Map:
         
 
     def __check_window__(self):
+        # check place in window for turn
         if self.road_turn and self.road_orientation == 1:
             #right
             if self.x_right + self.img_width*2 <= self.window_width:
@@ -141,6 +142,7 @@ class Map:
     
 
     def check_turn(self, road_turn, n):
+        """sprawdzanie możliwości do zarkętu"""
         self.__change_direction__(road_turn, n)
         if self.__check_window__():
             # add road_collision
@@ -150,7 +152,7 @@ class Map:
                 
                 return True
         else:
-            print('SHITTT')
+            return False
 
 
     def __generate_straight_road_x__(self, x, y, road_orientation, x_fix, y_fix, img):

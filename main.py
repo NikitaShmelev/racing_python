@@ -36,6 +36,7 @@ def move_player(player_car):
     #ruch samochodu we wszystkie strony + jazda
     keys = pygame.key.get_pressed()
     moved = False
+################################# remove this shit 
     if keys[pygame.K_a]:
         player_car.rotate(left=True)
     if keys[pygame.K_d]:
@@ -48,7 +49,10 @@ def move_player(player_car):
         player_car.move_backward()
     if not moved:
         player_car.reduce_speed()
+ #################################
 
+
+################################# add this shit
     # if keys[pygame.K_w]:
     #     moved = True
     #     player_car.move_forward()
@@ -65,7 +69,7 @@ def move_player(player_car):
     #         player_car.rotate(left=True)
     # if not moved:
     #     player_car.reduce_speed()
-
+################################
 def draw_objects(images):
     for img, pos in images:
         window.blit(img, pos)
@@ -76,6 +80,7 @@ def generate_map(main_car, map):
     map.step_straight_y()
     map.step_straight_y()
     map.step_straight_y()
+
     # map.step_straight_y()
     # map.step_straight_y()
     # while True:
@@ -87,7 +92,6 @@ def generate_map(main_car, map):
     if direction == 3:
         if map.check_turn(True, -1):
             if map.road_turn:
-                
                 map.horizontal_turn()
             else:
                 
@@ -102,6 +106,7 @@ def generate_map(main_car, map):
                 map.step_straight_y()
         else:
             pass
+            print('ADD FINISH HERE')
     else:
         map.step_straight_y()
             # change direction 
@@ -181,15 +186,13 @@ def gameloop():
 
         move_player(main_car)
 
-        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', MAIN_FONT, window, 828, 0)
-        # pygame.draw.line(
-        #     window, 'red', (1029, 1679), (20, 20), width=1
-        # )
+        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', 
+                    MAIN_FONT, window, 828, 0) # draw some text in window 
         handle_collision(
             main_car,
             map.images_masks
             # game_info
-            )
+            ) # crash check
         pygame.display.update()
 
         

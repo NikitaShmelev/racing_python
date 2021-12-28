@@ -15,8 +15,6 @@ class MainCar:
         self.x_pos, self.y_pos = x_pos, y_pos
         self.acceleration = acceleration
 
-    
-
     def draw(self, window):
         blit_rotate_center(
                     window, self.img, 
@@ -46,6 +44,7 @@ class MainCar:
         self.move()
     
     def update_path_point(self):
+        # score check 
         target = self.path[self.current_point]
         rect = pygame.Rect(
             self.x_pos, self.y_pos, self.img.get_width(), self.img.get_height())
@@ -62,12 +61,10 @@ class MainCar:
         poi = car_mask.overlap(mask, offset)
         return poi
     
-
     def reset(self):
         self.x, self.y = self.START_POS
         self.angle = 0
         self.vel = 0
-
 
     def bounce(self):
         self.vel = -self.vel
