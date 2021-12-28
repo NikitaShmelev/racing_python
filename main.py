@@ -10,7 +10,7 @@ over_font = pygame.font.Font('freesansbold.ttf', 26)
 run = True
 FPS = 60
 width = 1680
-height = 1030
+height = 980
 window = pygame.display.set_mode((width, height))
 TEXTCOLOR = (255, 255, 255)
 clock = pygame.time.Clock()
@@ -56,23 +56,27 @@ def draw_objects(images):
 
 def generate_map(main_car, map):
     map.step_straight_y()
+    map.step_straight_y()
+    map.step_straight_y()
+    map.step_straight_y()
     # map.step_straight_y()
-
+    # map.step_straight_y()
     # while True:
     
     # if y > 0 and y < height:
-    direction = 3#random.randint(1,3)
+    direction = 1#random.randint(1,3)
     
         # 1 - left, 2 - straight, 3 - right
     if direction == 3:
         if map.check_turn(True, -1):
             if map.road_turn:
+                
                 map.horizontal_turn()
             else:
+                
                 map.step_straight_y()
         else:
-            print('nie git')
-        
+            pass
     elif direction == 1:
         if map.check_turn(True, 1):
             if map.road_turn:
@@ -80,31 +84,39 @@ def generate_map(main_car, map):
             else:
                 map.step_straight_y()
         else:
-            print('nie git')
+            pass
     else:
-
         map.step_straight_y()
             # change direction 
 
-
+############################################################
+    # DONE
     ### turn left after right turn 
+    # direction = 1
+    # if direction == 1:
+    #     print('here')
+    #     if map.check_turn(True, 1):
+    #         if map.road_turn:
+    #             map.horizontal_turn()
+    #         else:
+    #             print('here')
+
+    #             map.step_straight_y(left=False, right=False)
+
+    #     else:
+    #         print('ADD FINISH HERE')
+############################################################
+
+    ### turn right after left turn
     direction = 3
-    if direction == 1:
-        if map.check_turn(True, 1):
-            if map.road_turn:
-                map.horizontal_turn()
-            else:
-                map.step_straight_y(left=False, right=False)
-
-        else:
-            print('nie git')
-
-    # ### turn right after left turn 
     if direction == 3:
+        print(map.road_turn, map.road_orientation)
         if map.check_turn(True, 1):
+
             if map.road_turn:
                 map.horizontal_turn()
             else:
+                print('git!!!')
                 map.step_straight_y(left=False, right=False)
 
         else:
@@ -120,7 +132,7 @@ def gameloop():
     #         break
     #     else:
     #         continue 
-    x_pos = 1450 - 140*9
+    x_pos = 1450 - 140*7
     y_pos = height-100
     main_car = MainCar(
         x_pos=x_pos, y_pos= y_pos,
@@ -154,7 +166,7 @@ def gameloop():
             # if event.type == pygame.KEYDOWN:
         move_player(main_car)
 
-        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', MAIN_FONT, window, 128, 0)
+        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', MAIN_FONT, window, 828, 0)
         # pygame.draw.line(
         #     window, 'red', (1029, 1679), (20, 20), width=1
         # )

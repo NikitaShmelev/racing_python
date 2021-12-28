@@ -45,31 +45,35 @@ class Map:
                                     -220, -80, side_img=self.right_side_up_img
                                     )
         else:
+            print(f'{self.y_left=} {self.y_right=}')
             if self.y_left < self.y_right:
-                if self.road_orientation:
-                    
+                if self.road_orientation == 1:
+                    print(self.road_orientation)
+                    # start from right
                     self.horizontal_turn(orientation_fix=1)
                 else:
-                    self.horizontal_turn(orientation_fix=-1)
-                    self.y_left += -self.img_height
-                    self.y_right += -self.img_height
-                    self.y_left = self.generate_straight_road_y(
-                                        self.x_left, self.y_left, self.road_orientation, 
-                                    85, -50, side_img=self.left_side_up_img
-                                        )
-                    self.x_right += -self.img_width
-                    self.y_right = self.generate_straight_road_y(
-                                        self.x_right, self.y_right, self.road_orientation, 
-                                        -220, -80, side_img=self.right_side_up_img
-                                        )
-                    self.y_right = self.generate_straight_road_y(
-                                        self.x_right + 0, self.y_right, self.road_orientation, 
-                                        -220, -80, side_img=self.right_side_up_img
-                                        )
-                    self.x_right += self.img_width
-                    print(self.y_right, self.y_left)
-                
-
+                    # start from right
+                    if self.__check_window__():
+                        print('git')
+                        self.horizontal_turn(orientation_fix=-1)
+                        self.y_left += -self.img_height
+                        self.y_right += -self.img_height
+                        self.y_left = self.generate_straight_road_y(
+                                            self.x_left, self.y_left, self.road_orientation, 
+                                        85, -50, side_img=self.left_side_up_img
+                                            )
+                        self.x_right += -self.img_width
+                        self.y_right = self.generate_straight_road_y(
+                                            self.x_right, self.y_right, self.road_orientation, 
+                                            -220, -80, side_img=self.right_side_up_img
+                                            )
+                        self.y_right = self.generate_straight_road_y(
+                                            self.x_right + 0, self.y_right, self.road_orientation, 
+                                            -220, -80, side_img=self.right_side_up_img
+                                            )
+                        self.x_right += self.img_width
+                    else:
+                        return False
             else:
                 # CHECK THIS SHIT 
                 self.horizontal_turn(orientation_fix=1)
@@ -83,8 +87,10 @@ class Map:
         return y
 
     def __change_direction__(self, road_turn, n):
+        print('__change_direction__')
         if self.road_turn == road_turn:
             self.road_turn = False if road_turn else True
+            print(self.road_turn, self.road_orientation)
             if self.y_left == self.y_right:
                 self.road_orientation *= n
             else:
@@ -92,6 +98,7 @@ class Map:
         else:
             self.road_turn = road_turn
             self.road_orientation *= n
+        
 
     def __check_window__(self):
         if self.road_turn and self.road_orientation == 1:
@@ -106,15 +113,22 @@ class Map:
             else:
                 return False
         elif self.road_turn and self.road_orientation == -1:
+            #left
             if self.x_right - self.img_width*2 >= 0:
                 if self.y_left > -100:
                     self.changed = True
                     return True
         elif not self.road_turn and self.road_orientation == -1:
             #up
-            if (self.y_right - self.img_height and self.y_right - self.img_height) > -100:
+            print('self.y_right - self.img_height=',self.y_right - self.img_height)
+            print('self.y_right - self.img_height=', self.y_right - self.img_height)
+            print('-100 + self.img_height=',-100 + self.img_height)
+            if (self.y_right - self.img_height and self.y_right - self.img_height) > -100 + self.img_height:
+                
+                #top check
                 return True
             elif (self.y_right + self.img_height and self.y_right + self.img_height) < self.width_height:
+                # bottom check
                 self.road_orientation = 1
                 return True
             else:
@@ -136,7 +150,7 @@ class Map:
                 
                 return True
         else:
-            pass
+            print('SHITTT')
 
 
     def __generate_straight_road_x__(self, x, y, road_orientation, x_fix, y_fix, img):
@@ -180,6 +194,7 @@ class Map:
                                                 self.road_orientation*orientation_fix,
                                                 x_col_fix, y_col_fix, self.top_image)
     def horizontal_turn(self, orientation_fix=1):
+        
         if self.road_turn and self.road_orientation == 1:
             #right
             self.step_straight_y(right=False) # left side up\
@@ -192,6 +207,7 @@ class Map:
             self.changed = False
         elif self.road_turn and self.road_orientation == -1:
             #left
+            self.step_straight_y(left=False) # right side up\
             y_fix={
                 'y_left': self.images[-1][0].get_height(), 
                 'y_right': self.images[-1][0].get_height()
