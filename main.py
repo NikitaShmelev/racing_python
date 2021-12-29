@@ -56,13 +56,15 @@ def move_player(player_car):
     # if keys[pygame.K_w]:
     #     moved = True
     #     player_car.move_forward()
+    # if keys[pygame.K_s]:
+    #     moved = True
+    #     player_car.move_backward()
+    # if player_car.vel > 0:
     #     if keys[pygame.K_a]:
     #         player_car.rotate(left=True)
     #     if keys[pygame.K_d]:
     #         player_car.rotate(right=True)
-    # if keys[pygame.K_s]:
-    #     moved = True
-    #     player_car.move_backward()
+    # if player_car.vel < 0:
     #     if keys[pygame.K_a]:
     #         player_car.rotate(right=True)
     #     if keys[pygame.K_d]:
@@ -70,6 +72,8 @@ def move_player(player_car):
     # if not moved:
     #     player_car.reduce_speed()
 ################################
+
+
 def draw_objects(images):
     for img, pos in images:
         window.blit(img, pos)
@@ -78,15 +82,14 @@ def draw_objects(images):
 def generate_map(main_car, map):
     map.step_straight_y()
     map.step_straight_y()
-    map.step_straight_y()
-    map.step_straight_y()
+    
 
     # map.step_straight_y()
     # map.step_straight_y()
     # while True:
     
     # if y > 0 and y < height:
-    direction = 3#random.randint(1,3)
+    direction = 1#random.randint(1,3)
     
         # 1 - left, 2 - straight, 3 - right
     if direction == 3:
@@ -114,35 +117,47 @@ def generate_map(main_car, map):
 ############################################################
     # DONE
     ### turn left after right turn 
-    direction = 1
-    if direction == 1:
-        print('here')
-        if map.check_turn(True, 1):
-            if map.road_turn:
-                map.horizontal_turn()
-            else:
-                print('here')
-
-                map.step_straight_y(left=False, right=False)
-
-        else:
-            print('ADD FINISH HERE')
-############################################################
-
-    ### turn right after left turn
-    # direction = 3
-    # if direction == 3:
-    #     print(map.road_turn, map.road_orientation)
+    # direction = 1
+    # if direction == 1:
+    #     print('here')
     #     if map.check_turn(True, 1):
-
     #         if map.road_turn:
     #             map.horizontal_turn()
     #         else:
-    #             print('git!!!')
+    #             print('here')
+
     #             map.step_straight_y(left=False, right=False)
 
     #     else:
-    #         print('nie git')
+    #         print('ADD FINISH HERE')
+############################################################
+
+    ### turn right after left turn
+    direction = 3
+    if direction == 3:
+        
+        if map.check_turn(True, -1):
+
+            if map.road_turn:
+                map.horizontal_turn()
+            else:
+                map.step_straight_y(left=False, right=False)
+
+        else:
+            print('nie git')
+
+    direction = 3
+    if direction == 3:
+        
+        if map.check_turn(True, -1):
+
+            if map.road_turn:
+                map.horizontal_turn()
+            else:
+                map.step_straight_y(left=False, right=False)
+
+        else:
+            print('nie git')
 
 
 def gameloop():
@@ -186,8 +201,8 @@ def gameloop():
 
         move_player(main_car)
 
-        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=}', 
-                    MAIN_FONT, window, 828, 0) # draw some text in window 
+        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=} {round(main_car.vel)=}', 
+                    MAIN_FONT, window, 308, 0) # draw some text in window 
         handle_collision(
             main_car,
             map.images_masks
