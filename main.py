@@ -118,20 +118,22 @@ def generate_map(main_car, map):
 
     
 #######################################33
-    direction = 1
-    if direction == 1:
-        
-        if map.check_turn(True, -1):
-            if map.road_turn:
-                map.horizontal_turn()
-            else:
-                map.horizontal_turn()
-                map.step_straight_y(left=True,horizontal_fix=True)
+    
+    if map.check_turn(True, -1):
+        if map.road_turn:
+            map.horizontal_turn()
         else:
-            print('nie git')
+            map.horizontal_turn()
+            map.step_straight_y(
+                # left=False,
+                right=False,
+                horizontal_fix=False)
+    else:
+        print('nie git')
     print(
         f'x_left = {map.x_left} x_right = {map.x_right}\n'
-        f'y_left = {map.y_left}, y_right = {map.y_right}'
+        f'y_left = {map.y_left}, y_right = {map.y_right}\n'
+        f'orientation = {map.road_orientation}, y_right = {map.road_turn}'
         )
 
   
