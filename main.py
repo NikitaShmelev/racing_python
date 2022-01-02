@@ -89,20 +89,12 @@ def generate_map(main_car, map):
     
     if direction == 3:
         if map.check_turn(True, 1):
-            if map.road_turn:
-                map.horizontal_turn()
-            else:
-                map.horizontal_turn()
-                map.step_straight_y(horizontal_fix=True)
+            map.horizontal_turn()
         else:
             pass
     elif direction == 1:
         if map.check_turn(True, -1):
-            if map.road_turn:
-                map.horizontal_turn()
-            else:
-                map.horizontal_turn()
-                map.step_straight_y(horizontal_fix=True)
+            map.horizontal_turn()
         else:
             pass
             print('ADD FINISH HERE')
@@ -119,17 +111,18 @@ def generate_map(main_car, map):
     
 #######################################33
     
-    if map.check_turn(True, -1):
-        if map.road_turn:
-            map.horizontal_turn()
-        else:
-            map.horizontal_turn()
-            # map.step_straight_y(
-            #     left=False,
-            #     right=False,
-            #     horizontal_fix=False)
+    if map.check_turn(True, 1):
+        map.horizontal_turn()
     else:
         print('nie git')
+    if map.check_turn(True, 1):
+        map.horizontal_turn()
+    else:
+        print('nie git')
+    # if map.check_turn(True, 1):
+    #     map.horizontal_turn()
+    # else:
+    #     print('nie git')
     print(
         f'x_left = {map.x_left} x_right = {map.x_right}\n'
         f'y_left = {map.y_left}, y_right = {map.y_right}\n'
@@ -140,14 +133,6 @@ def generate_map(main_car, map):
 
 
 def gameloop():
-    # while True:
-    #     x_pos = random.randint(100, width-70)
-    #     if x_pos + 90 < width - 70:
-    #         break
-    #     elif  x_pos - 50 > 100:
-    #         break
-    #     else:
-    #         continue 
     x_pos = 1450 - 140*7
     y_pos = height-100*5
     main_car = MainCar(

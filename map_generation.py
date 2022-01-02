@@ -27,7 +27,7 @@ class Map:
         for img, pos in self.images:
             window.blit(img, pos)
 
-    def step_straight_y(self, left=True, right=True, horizontal_fix=False):
+    def step_straight_y(self, left=True, right=True, horizontal_fix=False, test=False):
         # road up
         
         # if self.y_right == self.y_left or extra_fix:
@@ -39,49 +39,13 @@ class Map:
         if right:
             # młody fix image size     
             młody_fix = -self.img_width
-
+            if test:
+                print('sss')
             self.y_right = self.generate_straight_road_y(
                                 self.x_right + młody_fix, self.y_right, self.road_orientation, 
                                 -220, -60, side_img=self.right_side_up_img)
-        if horizontal_fix:
-            if self.y_right < self.y_left:
-                if self.road_orientation == -1:
-                    self.y_left = self.generate_straight_road_y(
-                                    self.x_left, self.y_left, self.road_orientation, 
-                                    60, -80, side_img=self.left_side_up_img)
-                else:
-                    młody_fix = -self.img_width
-                    self.y_right = self.generate_straight_road_y(
-                                    self.x_right + młody_fix, self.y_right, self.road_orientation, 
-                                    -220, -60, side_img=self.right_side_up_img)
-            else:
-                
-                if self.road_orientation == -1:
-                    młody_fix = -self.img_width
-                    self.y_right = self.generate_straight_road_y(
-                                    self.x_right + młody_fix, self.y_right, self.road_orientation, 
-                                    -220, -60, side_img=self.right_side_up_img)
-                else:
-                    self.y_left = self.generate_straight_road_y(
-                                self.x_left, self.y_left, self.road_orientation, 
-                                60, -80, side_img=self.left_side_up_img)
-        # else:
-        #     self.step_straight_y(left=False)
-        # elif self.y_right != self.y_left:
-        #     if self.y_left < self.y_right:
-        #         if self.road_orientation == 1:
-        #             self.horizontal_turn(orientation_fix=1)
-        #         else:
-        #             # start from right
-        #             if self.__check_window__():
-        #                 self.y_left += self.img_height
-        #                 self.horizontal_turn(orientation_fix=-1)
-        #                 self.y_left += -2*self.img_height
 
-        #                 self.x_left += self.img_width
-        #                 self.x_right += self.img_width
-                        
-        #                 self.y_right += -self.img_height
+       
         #                 self.y_left = self.generate_straight_road_y(
         #                                     self.x_left, self.y_left, self.road_orientation, 
         #                                 85, -50, side_img=self.left_side_up_img)
@@ -92,17 +56,7 @@ class Map:
         #                 self.y_right = self.generate_straight_road_y(
         #                                     self.x_right + 0, self.y_right, self.road_orientation, 
         #                                     -220, -80, side_img=self.right_side_up_img)
-        #                 # self.x_right += self.img_width
-                        
-        #             else:
-        #                 return False
-        #     else:
-        #         if self.__check_window__():
-        #             self.changed = True
-        #             self.horizontal_turn()
 
-        #             self.y_left -= self.img_height
-        #             self.x_left += self.img_width
 
         #             self.y_left = self.generate_straight_road_y(
         #                                 self.x_left, self.y_left, self.road_orientation, 
@@ -110,21 +64,7 @@ class Map:
         #             self.y_left = self.generate_straight_road_y(
         #                                 self.x_left + 0, self.y_left, self.road_orientation, 
         #                                 60, -80, side_img=self.left_side_up_img)
-                    
-
-        #             self.y_right += -self.img_height
-        #             self.y_right = self.generate_straight_road_y(
-        #                                 self.x_right, self.y_right, self.road_orientation, 
-        #                             -200, -40, side_img=self.right_side_up_img)
-        #             self.x_right += self.img_width
-                    
-                    
-        #             self.changed = False
-        #             # breakpoint()
-                    
-
-        #         else:
-        #             return False
+  
  
 
     def generate_straight_road_y(self, x, y, direction, x_fix, y_fix, side_img):
@@ -321,7 +261,9 @@ class Map:
             imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
                 'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
             
-
+            print(
+                'down'
+            )
             if self.y_right < self.y_left:
                 self.step_straight_x(right=False, imgs=imgs)
                 self.x_left += self.img_width
@@ -331,7 +273,13 @@ class Map:
                 self.step_straight_y()
                 self.step_straight_y(right=False)
             else:
-                pass
+                print('asdsd')
+                imgs['right'] = self.top_image
+                self.step_straight_x(left=False, imgs=imgs, orientation_fix=-1)
+                self.y_left -= self.img_height
+                self.y_right -= self.img_height
+                self.step_straight_y(left=False, test=True)
+                self.step_straight_y()
 
             # if self.x_left < self.x_right:
             
@@ -359,10 +307,10 @@ class Map:
                 self.step_straight_y()
                 self.step_straight_y(right=False)
             else:
-                print('ge')
                 imgs['left'] = self.top_image
-
                 self.step_straight_x(right=False, imgs=imgs)
+                self.step_straight_y()
+                self.step_straight_y(right=False, test=True)
             
 
 
