@@ -124,10 +124,10 @@ def generate_map(main_car, map):
             map.horizontal_turn()
         else:
             map.horizontal_turn()
-            map.step_straight_y(
-                # left=False,
-                right=False,
-                horizontal_fix=False)
+            # map.step_straight_y(
+            #     left=False,
+            #     right=False,
+            #     horizontal_fix=False)
     else:
         print('nie git')
     print(

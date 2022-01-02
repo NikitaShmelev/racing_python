@@ -329,6 +329,7 @@ class Map:
                 self.y_left -= self.img_height
                 self.y_right -= self.img_height
                 self.step_straight_y()
+                self.step_straight_y(right=False)
             else:
                 pass
 
@@ -350,15 +351,18 @@ class Map:
             imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
                 'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
             
-            print('ge')
 
             if self.y_right < self.y_left:
                 self.step_straight_x(left=False, imgs=imgs)
                 self.y_left -= self.img_height
                 self.y_right += self.img_height
                 self.step_straight_y()
+                self.step_straight_y(right=False)
             else:
-                pass
+                print('ge')
+                imgs['left'] = self.top_image
+
+                self.step_straight_x(right=False, imgs=imgs)
             
 
 
