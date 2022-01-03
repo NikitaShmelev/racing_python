@@ -17,6 +17,7 @@ clock = pygame.time.Clock()
 MAIN_FONT = pygame.font.SysFont("comicsans", 44)
 
 
+
 def drawText(text, font, surface, x, y):
     textobj = font.render(text, 1, TEXTCOLOR)
     textrect = textobj.get_rect()
@@ -82,7 +83,7 @@ def generate_map(main_car, map):
     # while True:
     
     # if y > 0 and y < height:
-    direction = 1#random.randint(1,3)
+    direction = 3#random.randint(1,3)
     
         # 1 - left, 2 - up, 3 - right, 4 - down
    
@@ -111,21 +112,22 @@ def generate_map(main_car, map):
     
 #######################################33
     
-    if map.check_turn(True, 1):
-        map.horizontal_turn()
-    else:
-        print('nie git')
+    # if map.check_turn(True, 1):
+    #     map.horizontal_turn(test=True)
+    # else:
+    #     print('nie git')
         
     
+
+    # if map.check_turn(True, 1, test=False):
+    #     map.horizontal_turn(test=True)
+    # else:
+    #     print('nie git')
     
-    if map.check_turn(True, -1, test=False):
-        map.horizontal_turn(test=True)
-    else:
-        print('nie git')
     print(
         f'x_left = {map.x_left} x_right = {map.x_right}\n'
         f'y_left = {map.y_left}, y_right = {map.y_right}\n'
-        f'orientation = {map.road_orientation}, roat_turn = {map.road_turn}'
+        f'orientation = {map.road_orientation}, road_turn = {map.road_turn}'
         )
 
   
@@ -133,7 +135,7 @@ def generate_map(main_car, map):
 
 def gameloop():
     x_pos = 1450 - 140*5
-    y_pos = height-100*5
+    y_pos = height-140*4
     main_car = MainCar(
         x_pos=x_pos, y_pos= y_pos,
         max_vel=5, rotation_vel=4,
@@ -166,6 +168,13 @@ def gameloop():
 
         drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=} {round(main_car.vel)=}', 
                     MAIN_FONT, window, 308, 900) # draw some text in window 
+        for i in range(0, width, 140):
+            pygame.draw.line(window, 'red', (i, 0), (i, height))
+            drawText(f'{i}', pygame.font.SysFont("comicsans", 40), window, i, 10)
+        for i in range(0, height, 140):
+            pygame.draw.line(window, 'red', (0, i), (width, i))
+            drawText(f'{i}', pygame.font.SysFont("comicsans", 40), window, 10, i)
+        
         handle_collision(
             main_car,
             map.images_masks
