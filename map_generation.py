@@ -161,16 +161,18 @@ class Map:
 
     def check_turn(self, road_turn, orientation, test=False):
         """sprawdzanie możliwości do zarkętu"""
-        if test:
-            print(f'{self.road_orientation=} {self.road_turn=}')
         self.__change_direction__(road_turn, orientation)
         if test:
-            print(f'{self.road_orientation=} {self.road_turn=}')
+            print(f'{self.y_left=} {self.y_right=}')
         if self.__check_window__():
             # add road_collision
+            if test:
+                print(f'{self.y_left=} {self.y_right=}')
             if self.__road_collision__(
                                 self.bottom_image,
                                 self.x_right, self.y_right):
+                if test:
+                    print(f'{self.y_left=} {self.y_right=}')
                 return True
         else:
             return False
@@ -225,45 +227,71 @@ class Map:
                                                 self.x_left, self.y_left, 
                                                 self.road_orientation*orientation_fix,
                                                 x_col_fix, y_col_fix, imgs['left'])
-    def horizontal_turn(self, orientation_fix=1, fix=0):
+    
+    def horizontal_turn(self, orientation_fix=1, fix=0, test=False):
         imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
                 'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
+        if test:
+            print(self.x_right, self.x_left)
         if self.road_turn and self.road_orientation == 1:
             #right
-            self.step_straight_y(right=False) # left side up\
-            y_fix={
-                'y_left': -self.img_height, 
-                'y_right': self.img_height
-                }
-            imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
-                    'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
-            self.step_straight_x(right=False, imgs=imgs, y_fix=y_fix)
-            self.step_straight_x(imgs=imgs)
+            if self.x_right > self.x_left:
+                self.step_straight_y(right=False) # left side up\
+                y_fix={
+                    'y_left': -self.img_height, 
+                    'y_right': self.img_height
+                    }
+                imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
+                        'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
+                self.step_straight_x(right=False, imgs=imgs, y_fix=y_fix)
+                self.step_straight_x(imgs=imgs)
+            else:
+                self.step_straight_y(left=False)
+                imgs['left'] = self.top_image
+                imgs['right'] = self.top_image
+                self.y_left += self.img_height
+                self.x_left -= self.img_width
+                self.changed = True
+                self.step_straight_x(right=False, imgs=imgs)
+                self.y_right -= self.img_height
+                self.x_right += self.img_width
+                self.step_straight_x(imgs=imgs)
+                self.changed = False
             # self.changed = False
         elif self.road_turn and self.road_orientation == -1:
             #left
-            self.step_straight_y(left=False) # right side up\
-            y_fix={
-                'y_left': self.img_height, 
-                'y_right': self.img_height
+            if self.x_right > self.x_left:
+                self.step_straight_y(left=False) # right side up\
+                y_fix={
+                    'y_left': self.img_height, 
+                    'y_right': self.img_height
+                    }
+                x_fix={
+                    'x_right': -self.img_width, 
+                    'x_left': -self.img_width
                 }
-            x_fix={
-                'x_right': -self.img_width, 
-                'x_left': -self.img_width
-            }
-            # imgs={left: ....   right:...}
-            imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
-                    'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
-            self.step_straight_x(left=False, imgs=imgs, y_fix=y_fix, x_fix=x_fix)
-            self.step_straight_x(imgs=imgs)
+                # imgs={left: ....   right:...}
+                imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
+                        'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
+                self.step_straight_x(left=False, imgs=imgs, y_fix=y_fix, x_fix=x_fix)
+                self.step_straight_x(imgs=imgs)
+            else:
+                imgs['right'] = self.top_image
+                imgs['left'] = self.top_image
+                
+                self.step_straight_y(right=False)
+                # self.x_right -= self.img_width
+                self.x_left -= 2*self.img_width
+                self.y_left += self.img_height
+                self.y_right += self.img_height
+                self.step_straight_x(left=False, imgs=imgs)
+                self.step_straight_x(imgs=imgs)
+
             # self.changed = False
         elif not self.road_turn and self.road_orientation == -1:
             imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
                 'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
             
-            print(
-                'down'
-            )
             if self.y_right < self.y_left:
                 self.step_straight_x(right=False, imgs=imgs)
                 self.x_left += self.img_width
@@ -273,7 +301,6 @@ class Map:
                 self.step_straight_y()
                 self.step_straight_y(right=False)
             else:
-                print('asdsd')
                 imgs['right'] = self.top_image
                 self.step_straight_x(left=False, imgs=imgs, orientation_fix=-1)
                 self.y_left -= self.img_height
@@ -299,24 +326,25 @@ class Map:
             imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
                 'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
             
-
+            # print(f'{self.y_left=} {self.y_right=}')
             if self.y_right < self.y_left:
                 self.step_straight_x(left=False, imgs=imgs)
                 self.y_left -= self.img_height
                 self.y_right += self.img_height
                 self.step_straight_y()
                 self.step_straight_y(right=False)
-            else:
+            elif self.y_right > self.y_left:
                 imgs['left'] = self.top_image
                 self.step_straight_x(right=False, imgs=imgs)
                 self.step_straight_y()
                 self.step_straight_y(right=False, test=True)
-            
+            elif self.y_right == self.y_left:
+                pass
 
 
 
             # self.x_right -= self.img_width
-            print('right side generated')
+                print('right side generated')
             # self.x_left -= self.img_width
             # if self.x_left < self.x_right:
             #     self.x_left += self.img_width

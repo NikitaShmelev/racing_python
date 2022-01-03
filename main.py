@@ -115,25 +115,24 @@ def generate_map(main_car, map):
         map.horizontal_turn()
     else:
         print('nie git')
-    if map.check_turn(True, 1):
-        map.horizontal_turn()
+        
+    
+    
+    if map.check_turn(True, -1, test=False):
+        map.horizontal_turn(test=True)
     else:
         print('nie git')
-    # if map.check_turn(True, 1):
-    #     map.horizontal_turn()
-    # else:
-    #     print('nie git')
     print(
         f'x_left = {map.x_left} x_right = {map.x_right}\n'
         f'y_left = {map.y_left}, y_right = {map.y_right}\n'
-        f'orientation = {map.road_orientation}, y_right = {map.road_turn}'
+        f'orientation = {map.road_orientation}, roat_turn = {map.road_turn}'
         )
 
   
 
 
 def gameloop():
-    x_pos = 1450 - 140*7
+    x_pos = 1450 - 140*5
     y_pos = height-100*5
     main_car = MainCar(
         x_pos=x_pos, y_pos= y_pos,
