@@ -112,17 +112,17 @@ def generate_map(main_car, map):
     
 #######################################33
     
-    # if map.check_turn(True, 1):
-    #     map.horizontal_turn(test=True)
-    # else:
-    #     print('nie git')
+    if map.check_turn(True, 1):
+        map.horizontal_turn(test=True)
+    else:
+        print('nie git')
         
     
 
-    # if map.check_turn(True, 1, test=False):
-    #     map.horizontal_turn(test=True)
-    # else:
-    #     print('nie git')
+    if map.check_turn(True, -1, test=False):
+        map.horizontal_turn(test=True)
+    else:
+        print('nie git')
     
     print(
         f'x_left = {map.x_left} x_right = {map.x_right}\n'

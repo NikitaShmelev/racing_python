@@ -13,6 +13,8 @@ class Map:
         self.road_turn = False
         self.changed = False
         
+        self.was_right = False
+        self.was_left = False
 
         self.window_width = window_width
         self.width_height = width_height
@@ -246,8 +248,14 @@ class Map:
         if self.road_turn and self.road_orientation == 1:
             #right
             if self.x_right > self.x_left:
-                # self.y_left += self.img_height
-                # self.y_right += self.img_height
+                
+                if not self.was_right and not self.was_left:
+                    self.was_right = True
+                elif not self.was_right and self.was_left:
+                    self.was_right = True
+                elif self.was_right and self.was_left:
+                    self.y_left -= self.img_height
+                    self.y_right -= self.img_height
                 self.step_straight_y(right=False) # left side up\
                 y_fix={
                     'y_left': -self.img_height, 
@@ -278,7 +286,17 @@ class Map:
             # self.changed = False
         elif self.road_turn and self.road_orientation == -1:
             #left
+            
             if self.x_right > self.x_left:
+                if test:
+                    print(self.was_left, self.was_right)
+                if not self.was_right and not self.was_left:
+                    self.was_left = True
+                elif self.was_right and not self.was_left:
+                    self.was_left = True
+                elif self.was_right and self.was_left:
+                    self.y_left -= self.img_height
+                    self.y_right -= self.img_height
                 self.step_straight_y(left=False) # right side up\
                 y_fix={
                     'y_left': self.img_height, 
@@ -293,6 +311,7 @@ class Map:
                         'right': self.top_image if self.y_left > self.y_right else self.bottom_image,}
                 self.step_straight_x(left=False, imgs=imgs, y_fix=y_fix, x_fix=x_fix)
                 self.step_straight_x(imgs=imgs)
+                
             else:
                 print('huj2')
                 imgs['right'] = self.top_image
@@ -325,6 +344,10 @@ class Map:
                 # self.y_left += self.img_height
                 # self.y_right += self.img_height
             else:
+                if self.was_right and not self.was_left:
+                    self.was_left = True
+                elif self.was_left and not self.was_right:
+                    self.was_right = True
                 imgs['right'] = self.top_image
                 self.step_straight_x(left=False, imgs=imgs, orientation_fix=-1)
                 self.y_left -= self.img_height
