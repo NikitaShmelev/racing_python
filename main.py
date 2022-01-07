@@ -49,7 +49,11 @@ def move_player(player_car):
         player_car.move_backward()
     if not moved:
         player_car.reduce_speed()
-
+    if player_car.time == 0 and player_car.vel != 0:
+        player_car = time.time()
+    if keys[pygame.K_r]:
+        return False
+    return True
     # if keys[pygame.K_w]:
     #     moved = True
     #     player_car.move_forward()
@@ -76,6 +80,33 @@ def draw_objects(images):
     for img, pos in images:
         window.blit(img, pos)
 
+def gen_road(direction, map, test=False):
+    # direction = random.randint(1,3)
+    road = ''
+    if direction == 3:
+        if map.check_turn(True, 1, test=False):
+            map.horizontal_turn()
+            road += '-R'
+        else:
+            # break
+            print('ADD FINISH HERE')
+    elif direction == 1:
+        if map.check_turn(True, -1, test=False):
+            map.horizontal_turn()
+            road += '-L'
+        else:
+            # break
+            print('ADD FINISH HERE')
+    else:
+        if map.road_turn:
+            pass
+        else:
+            map.y_right -= map.img_height
+            map.y_left -= map.img_height
+            map.step_straight_y()
+            map.y_right += map.img_height
+            map.y_left += map.img_height
+    return road
 
 def generate_map(main_car, map):
     map.step_straight_y()
@@ -83,46 +114,66 @@ def generate_map(main_car, map):
     # while True:
     
     # if y > 0 and y < height:
-    direction = 3#random.randint(1,3)
     
-        # 1 - left, 2 - up, 3 - right, 4 - down
-   
-    
-    if direction == 3:
-        if map.check_turn(True, 1):
-            map.horizontal_turn()
+    road='U'
+        # 1 - left, 2 - straight, 3 - right
+    test= False
+    i = 0
+    while True:
+        if i == 0:
+            direction = random.choice([1,3])
         else:
-            pass
-    elif direction == 1:
-        if map.check_turn(True, -1):
-            map.horizontal_turn()
+            direction = random.randint(1,3)
+        i += 1
+        print(direction)
+        if direction == 3:
+            if map.check_turn(True, 1, test=test):
+                map.horizontal_turn()
+                road += '-R'
+            else:
+                print('ADD FINISH HERE R')
+                break
+        elif direction == 1:
+            if map.check_turn(True, -1, test=test):
+                map.horizontal_turn()
+                road += '-L'
+            else:
+                print('ADD FINISH HERE L')
+                break
         else:
-            pass
-            print('ADD FINISH HERE')
-    elif direction == 2:
-        # up
-        
-        map.road_orientation = -1
-        map.step_straight_y()
-    else:
-        # down
-        map.road_orientation = 1
-        map.step_straight_y()
+            if map.road_turn:
+                imgs = {'left': map.top_image if map.y_left > map.y_right else map.bottom_image,
+                        'right': map.top_image if map.y_left > map.y_right else map.bottom_image,}
+                map.step_straight_x(imgs=imgs)
+                if map.road_orientation:
+                    road += '-R'
+                else:
+                    road += '-L'
+            else:
+                map.y_right -= map.img_height
+                map.y_left -= map.img_height
+                map.step_straight_y()
+                map.y_right += map.img_height
+                map.y_left += map.img_height
+    # road += gen_road(3, map)
+    # road += gen_road(1, map)
+    # road += gen_road(2, map)
+    # road += gen_road(2, map)
+    # road += gen_road(3, map)
 
+    # road += gen_road(3, map)
+    
+    # map.step_straight_y()
+    # map.step_straight_y()
+        
+    
     
 #######################################33
     
-    if map.check_turn(True, 1):
-        map.horizontal_turn(test=True)
-    else:
-        print('nie git')
-        
     
-
-    if map.check_turn(True, -1, test=False):
-        map.horizontal_turn(test=True)
-    else:
-        print('nie git')
+    
+    print(road)
+    
     
     print(
         f'x_left = {map.x_left} x_right = {map.x_right}\n'
@@ -130,17 +181,16 @@ def generate_map(main_car, map):
         f'orientation = {map.road_orientation}, road_turn = {map.road_turn}'
         )
 
-  
-
-
-def gameloop():
-    x_pos = 1450 - 140*5
-    y_pos = height-140*4
+def create_objects():
+    x_pos = 1450 - 140*6
+    y_pos = height-140*1
     main_car = MainCar(
         x_pos=x_pos, y_pos= y_pos,
         max_vel=5, rotation_vel=4,
         image_path='images/car_images/car_small_up.png', 
-        acceleration=0.2*5, start_vel=0, angle=0)
+        acceleration=0.2*5, start_vel=0, angle=0,
+        start_pos=(x_pos, y_pos)
+        )
     map = Map(
         x_left=main_car.x_pos - 50, #x lewej strony drogi
         y_left=main_car.y_pos,      #y lewej strony drogi
@@ -149,7 +199,11 @@ def gameloop():
         window_width=width,
         width_height=height,
     )
+    return main_car, map
 
+
+def gameloop():
+    main_car, map = create_objects()
     generate_map(main_car, map)
     while run:
         clock.tick(FPS) #dzięki tej funkcji gra działa wolniej
@@ -164,10 +218,21 @@ def gameloop():
                 pygame.quit()
                 sys.exit()
 
-        move_player(main_car)
+        if move_player(main_car):
+            pass
+        else:
+            main_car, map = create_objects()
+            generate_map(main_car, map)
 
         drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=} {round(main_car.vel)=}', 
-                    MAIN_FONT, window, 308, 900) # draw some text in window 
+                    MAIN_FONT, window, 308, 900) # draw some text in window
+        
+        if main_car.time != 0:
+            current_time = time.time() - main_car.time
+        # if current_time > 60:
+        #     current_time = f'{str(current_time//60)} min {(str(current_time%60))}s'
+            drawText(f'{current_time}', 
+                        MAIN_FONT, window, 908, 50) 
         for i in range(0, width, 140):
             pygame.draw.line(window, 'red', (i, 0), (i, height))
             drawText(f'{i}', pygame.font.SysFont("comicsans", 40), window, i, 10)

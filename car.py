@@ -5,7 +5,7 @@ class MainCar:
     def __init__(self, x_pos, y_pos, 
                 max_vel, rotation_vel, 
                 image_path, acceleration, 
-                start_vel, angle):
+                start_vel, angle, start_pos):
         self.img = scale_image(pygame.image.load(image_path), 0.55)
         # self.img = pygame.image.load(image_path)
         self.max_vel = max_vel
@@ -14,6 +14,10 @@ class MainCar:
         self.angle = angle
         self.x_pos, self.y_pos = x_pos, y_pos
         self.acceleration = acceleration
+        self.vertical = 0
+        self.horizontal = 0
+        self.START_POS = start_pos
+        self.time = 0
 
     def draw(self, window):
         blit_rotate_center(
@@ -30,10 +34,10 @@ class MainCar:
 
     def move(self):
         radians = math.radians(self.angle)
-        vertical = math.cos(radians) * self.vel
-        horizontal = math.sin(radians) * self.vel
-        self.y_pos -= vertical
-        self.x_pos -= horizontal
+        self.vertical = math.cos(radians) * self.vel
+        self.horizontal = math.sin(radians) * self.vel
+        self.y_pos -= self.vertical
+        self.x_pos -= self.horizontal
 
     def move_forward(self):
         self.vel = min(self.vel + self.acceleration, self.max_vel)
