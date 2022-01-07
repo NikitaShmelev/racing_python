@@ -9,7 +9,6 @@ class MainCar:
                  image_path, acceleration,
                  start_vel, angle):
         self.img = scale_image(pygame.image.load(image_path), 0.55)
-        # self.img = pygame.image.load(image_path)
         self.max_vel = max_vel
         self.vel = start_vel
         self.rotation_vel = rotation_vel
