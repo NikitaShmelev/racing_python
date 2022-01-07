@@ -182,6 +182,7 @@ class Map:
         return True
 
     def check_window(self):
+        print('\n\ncheck_window')
         if not self.__check_critical_positions__():
             print('THIS IS THE END!')
             return False
@@ -204,21 +205,18 @@ class Map:
             if self.__check_top__():
                 return True
             self.road_orientation = 1
-            return self.__check_bottom__()
+            return True
                 
         elif not self.road_turn and self.road_orientation == 1:
             if self.__check_bottom__():
                 return True
             self.road_orientation = -1
-            return self.__check_top__()
+            return True
 
     def check_turn(self, road_turn, orientation, straight=False):
         """sprawdzanie możliwości do zarkętu"""
         if not straight:
             self.__change_direction__(road_turn, orientation)
-        if straight:
-            print('XD')
-            print(self.road_turn, self.road_orientation)
         if self.check_window():
             # add road_collision
             if self.__all_sides_collision__():
@@ -311,8 +309,6 @@ class Map:
                     imgs['right'] = self.top_image
                 self.step_straight_x(right=False, imgs=imgs, y_fix=y_fix)
                 self.step_straight_x(imgs=imgs)
-                # if randint(0,1):
-                #     self.step_straight_x(imgs=imgs)
                 self.changed = False
             else:
                 imgs_up = {'right': self.right_side_up_img}
@@ -326,8 +322,6 @@ class Map:
                 self.y_left -= self.img_height
                 self.x_right += self.img_width
                 self.step_straight_x(imgs=imgs)
-                # if randint(0,1):
-                #     self.step_straight_x(imgs=imgs)
                 self.x_right += self.img_width
                 self.x_left += self.img_width
                 self.changed = False
@@ -342,8 +336,6 @@ class Map:
                 elif self.was_right and self.was_left:
                     self.y_left -= self.img_height
                     self.y_right -= self.img_height
-                print(self.was_left, self.was_right)
-                
                 self.changed = True
                 self.step_straight_y(left=False)  # right side up\
                 y_fix = {
@@ -360,8 +352,6 @@ class Map:
                 self.step_straight_x(left=False, imgs=imgs,
                                      y_fix=y_fix, x_fix=x_fix)
                 self.step_straight_x(imgs=imgs)
-                # if randint(0,1):
-                #     self.step_straight_x(imgs=imgs)
             else:
                 imgs['right'] = self.top_image
                 imgs['left'] = self.top_image
@@ -453,19 +443,35 @@ class Map:
                     self.bottom_image,
                     self.x_right, self.y_right):
                 return True
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_left, self.y_left):
+                return True
             self.road_orientation *= -1
             if self.__road_collision__(
                     self.bottom_image,
                     self.x_right, self.y_right):
+                return True
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_left, self.y_left):
                 return True
         else:
             if self.__road_collision__(
                     self.left_side_up_img,
                     self.x_right, self.y_right):
                 return True
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_left, self.y_left):
+                    return True
             self.road_orientation *= -1
             if self.__road_collision__(
                     self.left_side_up_img,
                     self.x_right, self.y_right):
                 return True
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_left, self.y_left):
+                    return True
         return False

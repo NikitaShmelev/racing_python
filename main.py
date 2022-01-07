@@ -102,53 +102,36 @@ def generate_map(main_car, map):
     map.step_straight_y()
 
     road = 'U'
-    road += gen_road(1, map)
-    road += gen_road(3, map)
-    road += gen_road(1, map)
-    road += gen_road(3, map)
+    # road += gen_road(3, map)
+    # road += gen_road(1, map)
+    # road += gen_road(3, map)
+    # road += gen_road(3, map)
 
-    road += gen_road(1, map)
+    # road += gen_road(3, map)
 
-    road += gen_road(1, map)
+    # road += gen_road(3, map)
 
     # road += gen_road(1, map)
     # road += gen_road(1, map)
-    # 1 - left, 2 - straight, 3 - right
-    # test = False
+    # 1 - left, 2 - right
+    test = False
 
-    # while True:
+    while True:
 
-    #     direction = random.choice([1, 3])
-    #     print(direction)
-    #     if direction == 3:
-    #         if map.check_turn(True, 1):
-    #             map.horizontal_turn()
-    #             road += '-R'
-    #         else:
-    #             print('ADD FINISH HERE R')
-    #             break
-    #     elif direction == 1:
-    #         if map.check_turn(True, -1):
-    #             map.horizontal_turn()
-    #             road += '-L'
-    #         else:
-    #             print('ADD FINISH HERE L')
-    #             break
-    #     else:
-    #         if map.road_turn:
-    #             imgs = {'left': map.top_image if map.y_left > map.y_right else map.bottom_image,
-    #                     'right': map.top_image if map.y_left > map.y_right else map.bottom_image, }
-    #             map.step_straight_x(imgs=imgs)
-    #             if map.road_orientation:
-    #                 road += '-R'
-    #             else:
-    #                 road += '-L'
-    #         else:
-    #             map.y_right -= map.img_height
-    #             map.y_left -= map.img_height
-    #             map.step_straight_y()
-    #             map.y_right += map.img_height
-    #             map.y_left += map.img_height
+        direction = random.choice([1, 2])
+        print(direction)
+        if direction == 2:
+            if map.check_turn(True, 1):
+                map.horizontal_turn()
+            else:
+                print('ADD FINISH HERE R')
+                break
+        if direction == 1:
+            if map.check_turn(True, -1):
+                map.horizontal_turn()
+            else:
+                print('ADD FINISH HERE L')
+                break
 
     print(road)
     print(
