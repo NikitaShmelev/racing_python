@@ -143,67 +143,74 @@ class Map:
                 return True
         return False
 
+
+    def __check_left_up__(self):
+        if self.x_right - self.img_width*2 >= 0:
+            return self.__check_top__()
+        self.road_orientation = 1
+        return self.__check_top__()
+
+    def __check_left_down__(self):
+        if self.x_left - self.img_width*2 >= 0:
+            if self.__check_bottom__():
+                return True
+        self.road_orientation = 1
+        return self.__check_bottom__()
+    
+    def __check_right_up__(self):
+        if self.x_left + self.img_width*2 <= self.window_width:
+            return self.__check_top__()
+        self.road_orientation = -1
+        return self.__check_top__()
+
+    def __check_right_down__(self):
+        if self.x_right + self.img_width*2 <= self.window_width:
+            return self.__check_bottom__()
+        self.road_orientation = -1
+        return self.__check_bottom__()
+
     def __check_critical_positions__(self):
+        l_fix = 140 if self.previos == 'left' else 0
         if self.y_right == 0 and self.y_left == 0:
             return False
-        if self.y_right == self.window_height and self.y_left == self.window_height:
+        if self.y_right  == self.window_height and self.y_left == self.window_height:
             return False
-        if self.x_left == 0 and self.x_right == 0:
+        if (self.x_left + l_fix) == 0 and (self.x_right + l_fix) == 0:
             return False
         if self.x_left == self.window_width and self.x_right == self.window_width:
             return False
         return True
 
     def check_window(self):
-        # check place in window for turn
         if not self.__check_critical_positions__():
             print('THIS IS THE END!')
             return False
 
+        # check place in window for turn
         if self.road_turn and self.road_orientation == 1:
             # right
-            if self.x_right + self.img_width*2 <= self.window_width:
-                if self.x_right > self.x_left:
-                    if self.__check_top__():
-                        return True
-                else:
-                    if self.__check_bottom__():
-                        return True
-                return False
-
-            elif self.x_right - self.img_width*2 >= 0:
-                self.road_orientation = -1
-                self.changed = True
-                return True
+            if self.x_right > self.x_left:
+                return self.__check_right_up__()
             else:
-                return False
+                return self.__check_right_down__()
         elif self.road_turn and self.road_orientation == -1:
             # left
             if self.x_right > self.x_left:
-                if self.__check_top__():
-                    return True
+                return self.__check_left_up__()
             else:
-                if self.__check_bottom__():
-                    return True
-            return True
+                return self.__check_left_down__()
         elif not self.road_turn and self.road_orientation == -1:
             # up
             if self.__check_top__():
-                print('hmm')
-                # top check
                 return True
-            elif self.__check_bottom__():
-                self.road_orientation = 1
-                return True
-            return False
-
+            self.road_orientation = 1
+            return self.__check_bottom__()
+                
         elif not self.road_turn and self.road_orientation == 1:
             if self.__check_bottom__():
                 return True
-            elif self.__check_top__():
-                self.road_orientation = -1
-                return True
-        return False
+            self.road_orientation = -1
+            return self.__check_top__()
 
     def check_turn(self, road_turn, orientation, straight=False):
         """sprawdzanie możliwości do zarkętu"""
@@ -292,20 +299,20 @@ class Map:
                 elif self.was_right and self.was_left:
                     self.y_left -= self.img_height
                     self.y_right -= self.img_height
-                self.step_straight_y(right=False)  # left side up\
+                self.step_straight_y(right=False)  # left side up
                 y_fix = {
                     'y_left': -self.img_height,
                     'y_right': self.img_height
                 }
                 imgs = {'left': self.top_image, }
-
                 if self.y_right > self.y_left:
                     imgs['right'] = self.bottom_image
                 else:
-                    # self.changed = True
                     imgs['right'] = self.top_image
                 self.step_straight_x(right=False, imgs=imgs, y_fix=y_fix)
                 self.step_straight_x(imgs=imgs)
+                # if randint(0,1):
+                #     self.step_straight_x(imgs=imgs)
                 self.changed = False
             else:
                 imgs_up = {'right': self.right_side_up_img}
@@ -319,20 +326,24 @@ class Map:
                 self.y_left -= self.img_height
                 self.x_right += self.img_width
                 self.step_straight_x(imgs=imgs)
+                # if randint(0,1):
+                #     self.step_straight_x(imgs=imgs)
                 self.x_right += self.img_width
                 self.x_left += self.img_width
                 self.changed = False
         elif self.road_turn and self.road_orientation == -1:
             # left
-            if self.x_right > self.x_left:
+            
+            if self.x_right > self.x_left: 
                 if not self.was_right and not self.was_left:
                     self.was_left = True
-
                 elif self.was_right and not self.was_left:
                     self.was_left = True
                 elif self.was_right and self.was_left:
                     self.y_left -= self.img_height
                     self.y_right -= self.img_height
+                print(self.was_left, self.was_right)
+                
                 self.changed = True
                 self.step_straight_y(left=False)  # right side up\
                 y_fix = {
@@ -349,6 +360,8 @@ class Map:
                 self.step_straight_x(left=False, imgs=imgs,
                                      y_fix=y_fix, x_fix=x_fix)
                 self.step_straight_x(imgs=imgs)
+                # if randint(0,1):
+                #     self.step_straight_x(imgs=imgs)
             else:
                 imgs['right'] = self.top_image
                 imgs['left'] = self.top_image
@@ -360,6 +373,8 @@ class Map:
                 self.changed = False
                 self.step_straight_x(right=False, imgs=imgs)
                 self.step_straight_x(imgs=imgs)
+                # if randint(0,1):
+                #     self.step_straight_x(imgs=imgs)
                 self.x_left += self.img_width
                 self.x_right += self.img_width
                 self.changed = False
@@ -377,11 +392,7 @@ class Map:
                 self.y_right -= self.img_height
                 self.step_straight_y()
                 self.step_straight_y(right=False)
-            else:
-                if self.was_right and not self.was_left:
-                    self.was_left = True
-                elif self.was_left and not self.was_right:
-                    self.was_right = True
+            else:  
                 imgs['right'] = self.top_image
                 self.step_straight_x(left=False, imgs=imgs, orientation_fix=-1)
                 self.y_left -= self.img_height
@@ -393,6 +404,10 @@ class Map:
             if self.previos == 'left':
                 self.y_left += self.img_height
                 self.y_right += self.img_height
+            if self.was_right and not self.was_left:
+                    self.was_left = True
+            elif self.was_left and not self.was_right:
+                self.was_right = True
 
         elif not self.road_turn and self.road_orientation == 1:
             # down
@@ -411,8 +426,6 @@ class Map:
                 self.step_straight_x(right=False, imgs=imgs)
                 self.step_straight_y()
                 self.step_straight_y(right=False, test=True)
-            elif self.y_right == self.y_left:
-                pass
 
     def __road_collision__(self, road_image, x, y):
         mask = pygame.mask.from_surface(road_image)
@@ -434,24 +447,25 @@ class Map:
             return True
 
     def __all_sides_collision__(self):
-        if self.__road_collision__(
-                self.bottom_image if self.road_turn else self.left_side_up_img,
-                self.x_right, self.y_right):
-            return True
-        self.road_orientation *= -1
-
-        if self.__road_collision__(
-                self.bottom_image if self.road_turn else self.left_side_up_img,
-                self.x_right, self.y_right):
-            return True
-        self.road_turn = False if self.road_turn else True
-        if self.__road_collision__(
-                self.bottom_image if self.road_turn else self.left_side_up_img,
-                self.x_right, self.y_right):
-            return True
-        self.road_orientation *= -1
-        if self.__road_collision__(
-                self.bottom_image if self.road_turn else self.left_side_up_img,
-                self.x_right, self.y_right):
-            return True
+        # if error in some place -> change dir 
+        if self.road_turn:
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_right, self.y_right):
+                return True
+            self.road_orientation *= -1
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_right, self.y_right):
+                return True
+        else:
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_right, self.y_right):
+                return True
+            self.road_orientation *= -1
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_right, self.y_right):
+                return True
         return False
