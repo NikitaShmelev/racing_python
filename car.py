@@ -1,11 +1,13 @@
 import pygame
 import math
 from utils import *
+
+
 class MainCar:
-    def __init__(self, x_pos, y_pos, 
-                max_vel, rotation_vel, 
-                image_path, acceleration, 
-                start_vel, angle, start_pos):
+    def __init__(self, x_pos, y_pos,
+                 max_vel, rotation_vel,
+                 image_path, acceleration,
+                 start_vel, angle):
         self.img = scale_image(pygame.image.load(image_path), 0.55)
         # self.img = pygame.image.load(image_path)
         self.max_vel = max_vel
@@ -16,15 +18,14 @@ class MainCar:
         self.acceleration = acceleration
         self.vertical = 0
         self.horizontal = 0
-        self.START_POS = start_pos
         self.time = 0
 
     def draw(self, window):
         blit_rotate_center(
-                    window, self.img, 
-                    (self.x_pos, self.y_pos), 
-                    self.angle
-                    )
+            window, self.img,
+            (self.x_pos, self.y_pos),
+            self.angle
+        )
 
     def rotate(self, left=False, right=False):
         if left:
@@ -46,9 +47,9 @@ class MainCar:
     def move_backward(self):
         self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
         self.move()
-    
+
     def update_path_point(self):
-        # score check 
+        # score check
         target = self.path[self.current_point]
         rect = pygame.Rect(
             self.x_pos, self.y_pos, self.img.get_width(), self.img.get_height())
@@ -58,17 +59,12 @@ class MainCar:
     def reduce_speed(self):
         self.vel = max(self.vel - self.acceleration / 2, 0)
         self.move()
-        
+
     def collide(self, mask, x=0, y=0, x_fix=0, y_fix=0):
         car_mask = pygame.mask.from_surface(self.img)
         offset = (int(-x+self.x_pos + x_fix), int(-y+self.y_pos+y_fix))
         poi = car_mask.overlap(mask, offset)
         return poi
-    
-    def reset(self):
-        self.x, self.y = self.START_POS
-        self.angle = 0
-        self.vel = 0
 
     def bounce(self):
         self.vel = -self.vel
