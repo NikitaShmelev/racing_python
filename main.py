@@ -5,7 +5,7 @@ import math
 import sys
 from map_generation import Map
 from car import MainCar
-from utils import scale_image, blit_rotate_center, blit_text_center
+from utils import scale_image, blit_rotate_center
 pygame.font.init()
 over_font = pygame.font.Font('freesansbold.ttf', 26)
 run = True
@@ -25,13 +25,20 @@ def drawText(text, font, surface, x, y):
     surface.blit(textobj, textrect)
 
 
-def handle_collision(main_car, images_masks):
+def handle_collision(main_car, images_masks, finish):
     for mask in images_masks:
         x_fix = mask[3]
         y_fix = mask[4]
         if main_car.collide(mask=mask[0], x=mask[1], y=mask[2], x_fix=x_fix, y_fix=y_fix) != None:
             main_car.bounce()
-
+    mask = finish['mask']
+    x = finish['x']
+    y = finish['y']
+    x_fix = finish['x_fix']
+    y_fix = finish['y_fix']
+    if main_car.collide(mask=mask, x=x, y=y, x_fix=x_fix, y_fix=y_fix) != None:
+        main_car.bounce()
+        print("END")
 
 def move_player(player_car):
     # ruch samochodu we wszystkie strony + jazda
@@ -47,6 +54,15 @@ def move_player(player_car):
     if keys[pygame.K_s]:
         moved = True
         player_car.move_backward()
+    if keys[pygame.K_SPACE]:
+        if player_car.vertical > 0:
+            player_car.y_pos += -5
+        elif player_car.vertical < 0:
+            player_car.y_pos += 5
+        # if player_car.horizontal > 0:
+        #     player_car.x_pos += -5
+        # elif player_car.horizontal < 0:
+        #     player_car.x_pos += 5
     if not moved:
         player_car.reduce_speed()
     if player_car.time == 0 and player_car.vel != 0:
@@ -82,6 +98,9 @@ def draw_objects(images):
 
 def gen_road(direction, map, test=False):
     # direction = random.randint(1,3)
+    # testowa funkcja 
+    # nie dołączać do sprawozdania
+
     road = ''
     if direction == 3:  # right
         if map.check_turn(road_turn=True, orientation=1):
@@ -98,9 +117,14 @@ def gen_road(direction, map, test=False):
     return road
 
 
-def generate_map(main_car, map):
+def generate_map(window, map):
+    map.generate_start()
     map.step_straight_y()
+    
 
+    ##########################
+    # testowy kawałek 
+    # nie nie dołączać do sprawozdania
     road = 'U'
     # road += gen_road(3, map)
     # road += gen_road(1, map)
@@ -113,38 +137,28 @@ def generate_map(main_car, map):
 
     # road += gen_road(1, map)
     # road += gen_road(1, map)
+    ##############################
     # 1 - left, 2 - right
     test = False
 
     while True:
 
         direction = random.choice([1, 2])
-        print(direction)
         if direction == 2:
             if map.check_turn(True, 1):
                 map.horizontal_turn()
             else:
-                print('ADD FINISH HERE R')
-                break
+                return map.generate_finish(window)
         if direction == 1:
             if map.check_turn(True, -1):
                 map.horizontal_turn()
             else:
-                print('ADD FINISH HERE L')
-                break
+                return map.generate_finish(window)
 
-    print(road)
-    print(
-        f'x_left = {map.x_left}, x_right = {map.x_right}\n'
-        f'y_left = {map.y_left}, y_right = {map.y_right}\n'
-        f'orientation = {map.road_orientation}, road_turn = {map.road_turn}\n'
-        f'was_left = {map.was_left}, was_right={map.was_right}\n'
-        f'previos = {map.previos}'
-    )
 
 
 def create_objects():
-    x_pos = 1450 - 140*6
+    x_pos = random.choice([i for i in range(50, width-140-50, 140)])
     y_pos = height-140*1
     main_car = MainCar(
         x_pos=x_pos, y_pos=y_pos,
@@ -165,7 +179,18 @@ def create_objects():
 
 def gameloop():
     main_car, map = create_objects()
-    generate_map(main_car, map)
+    finish = generate_map(window, map)
+    ##########################
+    # testowy kawałek 
+    # nie nie dołączać do sprawozdania
+    print(
+        f'x_left = {map.x_left}, x_right = {map.x_right}\n'
+        f'y_left = {map.y_left}, y_right = {map.y_right}\n'
+        f'orientation = {map.road_orientation}, road_turn = {map.road_turn}\n'
+        f'was_left = {map.was_left}, was_right={map.was_right}\n'
+        f'previos = {map.previos}'
+    )
+    ##########################
     while run:
         clock.tick(FPS)  # dzięki tej funkcji gra działa wolniej
 
@@ -179,14 +204,21 @@ def gameloop():
                 pygame.quit()
                 sys.exit()
 
-        if move_player(main_car):
-            pass
-        else:
-            # time.sleep(1)
-
+        if not move_player(main_car):
+            time.sleep(0.05)
             main_car, map = create_objects()
-            generate_map(main_car, map)
+            finish = generate_map(window, map)
+            print(
+                f'x_left = {map.x_left}, x_right = {map.x_right}\n'
+                f'y_left = {map.y_left}, y_right = {map.y_right}\n'
+                f'orientation = {map.road_orientation}, road_turn = {map.road_turn}\n'
+                f'was_left = {map.was_left}, was_right={map.was_right}\n'
+                f'previos = {map.previos}'
+            )
 
+        ##############################
+        # testowy kawałek 
+        # nie nie dołączać do sprawozdania
         for i in range(0, width, 140):
             pygame.draw.line(window, 'red', (i, 0), (i, height))
             drawText(f'{i}', pygame.font.SysFont(
@@ -195,22 +227,27 @@ def gameloop():
             pygame.draw.line(window, 'red', (0, i), (width, i))
             drawText(f'{i}', pygame.font.SysFont(
                 "comicsans", 40), window, 10, i)
+        
+        
         drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=} {round(main_car.vel)=}',
                  MAIN_FONT, window, 308, 900)  # draw some text in window
+        ##############################
+
         if main_car.time != 0:
+            # timer output edit
             current_time = time.time() - main_car.time
             if current_time > 60:
                 current_time = f'{str(current_time//60)} min {(str(round(current_time%60,2)))}s'
             else:
                 current_time = str(round(current_time, 2)) + ' s'
+            # draw game time
             drawText(f'{current_time}',
-                     MAIN_FONT, window, 0, 45)
+                     MAIN_FONT, window, 0, 45) 
 
         handle_collision(
             main_car,
-            map.images_masks
-            # game_info
-        )  # crash check
+            map.images_masks,
+            finish)
         pygame.display.update()
 
     pygame.quit()

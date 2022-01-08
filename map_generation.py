@@ -1,6 +1,5 @@
-from utils import *
-from random import randint
-
+from utils import blit_rotate_center, scale_image
+import pygame
 
 class Map:
     def __init__(self, x_left, y_left, x_right, y_right,
@@ -15,10 +14,8 @@ class Map:
         self.road_orientation = -1
         self.road_turn = False
         self.changed = False
-
         self.was_right = False
         self.was_left = False
-
         self.window_width = window_width
         self.window_height = window_height
         self.right_side_up_img = scale_image(pygame.image.load(
@@ -29,10 +26,17 @@ class Map:
             'images/bumpers/Road_2x14_bottom_bumper.png'), 1)
         self.top_image = scale_image(pygame.image.load(
             'images/bumpers/Road_2x14_top_bumper.png'), 1)
+        self.start_img_horizontal = scale_image(pygame.image.load(
+            'images/bumpers/finish_line_14x2.png'), 1)
+        self.start_img_vertical_left = scale_image(pygame.image.load(
+            'images/bumpers/finish_line_2x14_left.png'), 1)
+        self.start_img_vertical_right = scale_image(pygame.image.load(
+            'images/bumpers/finish_line_2x14_right.png'), 1)
         self.img_width = self.bottom_image.get_width()
         self.img_height = self.left_side_up_img.get_height()
         self.previos = None
 
+    
     def draw_map(self, window):
         # (img, (x, y), orientation)
         for item in self.images:
@@ -49,7 +53,7 @@ class Map:
             else:
                 img = self.left_side_up_img
                 młody_fix = 0
-            self.y_left = self.generate_straight_road_y(
+            self.y_left = self.__generate_straight_road_y__(
                 self.x_left + młody_fix, self.y_left, self.road_orientation,
                 60, -50, side_img=img)
         if right:
@@ -60,16 +64,299 @@ class Map:
             else:
                 młody_fix = -20
                 img = self.right_side_up_img
-            self.y_right = self.generate_straight_road_y(
+            self.y_right = self.__generate_straight_road_y__(
                 self.x_right + młody_fix, self.y_right, self.road_orientation,
                 50, -40, side_img=img)
 
-    def generate_straight_road_y(self, x, y, direction, x_fix, y_fix, side_img):
-        side_mask = pygame.mask.from_surface(side_img)
-        self.images_masks.append((side_mask, x, y, x_fix, y_fix))
-        self.images.append((side_img, (x, y)))
-        y += direction*side_img.get_height()
-        return y
+    def check_turn(self, road_turn, orientation, straight=False):
+        """sprawdzanie możliwości do zarkętu"""
+        if not straight:
+            self.__change_direction__(road_turn, orientation)
+        if self.__check_window__():
+            # add road_collision
+            if self.__all_sides_collision__():
+                return True
+            return False
+
+        else:
+            return False
+
+    def horizontal_turn(self, orientation_fix=1, fix=0, test=False):
+        imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
+                'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
+        if self.road_turn and self.road_orientation == 1:
+            # right
+            if self.x_right > self.x_left:
+                if not self.was_right and not self.was_left:
+                    self.was_right = True
+                elif not self.was_right and self.was_left:
+                    self.was_right = True
+                elif self.was_right and self.was_left:
+                    self.y_left -= self.img_height
+                    self.y_right -= self.img_height
+                self.step_straight_y(right=False)  # left side up
+                y_fix = {
+                    'y_left': -self.img_height,
+                    'y_right': self.img_height
+                }
+                imgs = {'left': self.top_image, }
+                if self.y_right > self.y_left:
+                    imgs['right'] = self.bottom_image
+                else:
+                    imgs['right'] = self.top_image
+                self.__step_straight_x__(right=False, imgs=imgs, y_fix=y_fix)
+                self.__step_straight_x__(imgs=imgs)
+                self.changed = False
+            else:
+                imgs_up = {'right': self.right_side_up_img}
+                imgs['left'] = self.top_image
+                imgs['right'] = self.top_image
+                self.step_straight_y(left=False, imgs=imgs_up, extra_fix=-20)
+                self.y_left += self.img_height
+                self.x_left -= self.img_width
+                self.changed = True
+                self.__step_straight_x__(right=False, imgs=imgs)
+                self.y_left -= self.img_height
+                self.x_right += self.img_width
+                self.__step_straight_x__(imgs=imgs)
+                self.x_right += self.img_width
+                self.x_left += self.img_width
+                self.changed = False
+        elif self.road_turn and self.road_orientation == -1:
+            # left
+            
+            if self.x_right > self.x_left: 
+                if not self.was_right and not self.was_left:
+                    self.was_left = True
+                elif self.was_right and not self.was_left:
+                    self.was_left = True
+                elif self.was_right and self.was_left:
+                    self.y_left -= self.img_height
+                    self.y_right -= self.img_height
+                self.changed = True
+                self.step_straight_y(left=False)  # right side up\
+                y_fix = {
+                    'y_left': self.img_height,
+                    'y_right': self.img_height
+                }
+                x_fix = {
+                    'x_right': -self.img_width,
+                    'x_left': -self.img_width
+                }
+                # imgs={left: ....   right:...}
+                imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
+                        'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
+                self.__step_straight_x__(left=False, imgs=imgs,
+                                     y_fix=y_fix, x_fix=x_fix)
+                self.__step_straight_x__(imgs=imgs)
+            else:
+                imgs['right'] = self.top_image
+                imgs['left'] = self.top_image
+                imgs_up = {'left': self.right_side_up_img}
+                self.step_straight_y(right=False, imgs=imgs_up)
+                self.x_right -= self.img_width
+                self.y_left += 2*self.img_height
+                self.x_left -= self.img_width
+                self.changed = False
+                self.__step_straight_x__(right=False, imgs=imgs)
+                self.__step_straight_x__(imgs=imgs)
+                # if randint(0,1):
+                #     self.__step_straight_x__(imgs=imgs)
+                self.x_left += self.img_width
+                self.x_right += self.img_width
+                self.changed = False
+
+            # self.changed = False
+        elif not self.road_turn and self.road_orientation == -1:
+            # up
+            imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
+                    'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
+            if self.y_right < self.y_left:
+                self.__step_straight_x__(right=False, imgs=imgs)
+                self.x_left += self.img_width
+                self.x_right += self.img_width
+                self.y_left -= self.img_height
+                self.y_right -= self.img_height
+                self.step_straight_y()
+                self.step_straight_y(right=False)
+            else:  
+                imgs['right'] = self.top_image
+                self.__step_straight_x__(left=False, imgs=imgs, orientation_fix=-1)
+                self.y_left -= self.img_height
+                self.y_right -= self.img_height
+                self.step_straight_y(left=False, test=True)
+                self.step_straight_y()
+                self.y_left += self.img_height
+                self.y_right += self.img_height
+            if self.previos == 'left':
+                self.y_left += self.img_height
+                self.y_right += self.img_height
+            if self.was_right and not self.was_left:
+                    self.was_left = True
+            elif self.was_left and not self.was_right:
+                self.was_right = True
+
+        elif not self.road_turn and self.road_orientation == 1:
+            # down
+            imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
+                    'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
+            if self.y_right < self.y_left:
+                self.__step_straight_x__(left=False, imgs=imgs)
+                self.y_left -= self.img_height
+                self.y_right += self.img_height
+                self.step_straight_y()
+                self.step_straight_y(right=False)
+                self.x_left += self.img_width
+                self.x_right -= self.img_width
+            elif self.y_right > self.y_left:
+                imgs['left'] = self.top_image
+                self.__step_straight_x__(right=False, imgs=imgs)
+                self.step_straight_y()
+                self.step_straight_y(right=False, test=True)
+
+    def generate_start(self):
+        self.images.append(
+            (self.start_img_horizontal, (self.x_left, self.y_left+self.img_height-20))
+        )
+        self.images_masks.append((pygame.mask.from_surface(self.start_img_horizontal), 
+                                self.x_right, self.y_right, 50, -60))
+
+    def generate_finish(self, window):
+        if self.y_left == self.y_right:
+            mask = pygame.mask.from_surface(self.start_img_horizontal)
+            # vertical dir
+            if self.x_right > self.x_left:
+                x = self.x_left
+                y = self.y_left
+                x_fix = 0
+                y_fix = 0
+                self.images.append(
+                    (self.start_img_horizontal, (x, y + 100)))
+            else:
+                # down dir
+                x = self.x_right
+                y = self.y_right
+                x_fix = -50 - 50
+                y_fix = 90
+                self.images.append(
+                    (self.start_img_horizontal, (x, y - 100)))
+                
+        else:
+            if self.previos == 'left':
+                mask = pygame.mask.from_surface(self.start_img_vertical_right)
+                if self.y_left > self.y_right:
+                    # up left
+                    x = self.x_right if self.x_right >= 0 else 20
+                    y = self.y_right
+                    x_fix = 0
+                    y_fix = 0
+                elif  self.y_left < self.y_right:
+                    pass
+
+            # horizontal dir
+            mask = pygame.mask.from_surface(self.start_img_horizontal) # FIX
+            x = self.x_right
+            y = self.y_right
+            x_fix = 0
+            y_fix = 0
+            mask = pygame.mask.from_surface(self.start_img_horizontal)
+            
+        return {
+            'mask': mask,
+            'x': x,
+            'y': y,
+            'x_fix': x_fix,
+            'y_fix': y_fix,
+        }
+
+    def __check_window__(self):
+        if not self.__check_critical_positions__():
+            return False
+
+        # check place in window for turn
+        if self.road_turn and self.road_orientation == 1:
+            # right
+            if self.x_right > self.x_left:
+                return self.__check_right_up__()
+            else:
+                return self.__check_right_down__()
+        elif self.road_turn and self.road_orientation == -1:
+            # left
+            if self.x_right > self.x_left:
+                return self.__check_left_up__()
+            else:
+                return self.__check_left_down__()
+        elif not self.road_turn and self.road_orientation == -1:
+            # up
+            if self.__check_top__():
+                return True
+            self.road_orientation = 1
+            return True
+                
+        elif not self.road_turn and self.road_orientation == 1:
+            if self.__check_bottom__():
+                return True
+            self.road_orientation = -1
+            return True
+
+    def __road_collision__(self, road_image, x, y):
+        mask = pygame.mask.from_surface(road_image)
+        if self.road_turn:
+            if self.road_orientation:
+                x += 140
+        else:
+            if self.road_orientation:
+                y += 140
+        for i in self.images_masks:
+            image_x = i[1]
+            image_y = i[2]
+            img_mask = i[0]
+            offset = (int(-image_x+x), int(-image_y+y))
+            poi = img_mask.overlap(mask, offset)
+            if poi != None:
+                return False
+        else:
+            return True
+
+    def __all_sides_collision__(self):
+        # if error in some place -> change dir 
+        if self.road_turn:
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_right, self.y_right):
+                return True
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_left, self.y_left):
+                return True
+            self.road_orientation *= -1
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_right, self.y_right):
+                return True
+            if self.__road_collision__(
+                    self.bottom_image,
+                    self.x_left, self.y_left):
+                return True
+        else:
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_right, self.y_right):
+                return True
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_left, self.y_left):
+                    return True
+            self.road_orientation *= -1
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_right, self.y_right):
+                return True
+            if self.__road_collision__(
+                    self.left_side_up_img,
+                    self.x_left, self.y_left):
+                    return True
+        return False
 
     def __change_direction__(self, road_turn, orientation):
         if self.road_orientation == -1 and self.road_turn == False:
@@ -131,7 +418,6 @@ class Map:
     def __check_bottom__(self):
         if (self.y_right + self.img_height) < self.window_height:
             if (self.y_right + self.img_height) < self.window_height - self.img_height:  # 840
-                print(self.y_right + self.img_height, self.window_height)
                 # bottom check
                 return True
         return False
@@ -142,7 +428,6 @@ class Map:
                 # top check
                 return True
         return False
-
 
     def __check_left_up__(self):
         if self.x_right - self.img_width*2 >= 0:
@@ -180,52 +465,7 @@ class Map:
         if self.x_left == self.window_width and self.x_right == self.window_width:
             return False
         return True
-
-    def check_window(self):
-        print('\n\ncheck_window')
-        if not self.__check_critical_positions__():
-            print('THIS IS THE END!')
-            return False
-
-        # check place in window for turn
-        if self.road_turn and self.road_orientation == 1:
-            # right
-            if self.x_right > self.x_left:
-                return self.__check_right_up__()
-            else:
-                return self.__check_right_down__()
-        elif self.road_turn and self.road_orientation == -1:
-            # left
-            if self.x_right > self.x_left:
-                return self.__check_left_up__()
-            else:
-                return self.__check_left_down__()
-        elif not self.road_turn and self.road_orientation == -1:
-            # up
-            if self.__check_top__():
-                return True
-            self.road_orientation = 1
-            return True
-                
-        elif not self.road_turn and self.road_orientation == 1:
-            if self.__check_bottom__():
-                return True
-            self.road_orientation = -1
-            return True
-
-    def check_turn(self, road_turn, orientation, straight=False):
-        """sprawdzanie możliwości do zarkętu"""
-        if not straight:
-            self.__change_direction__(road_turn, orientation)
-        if self.check_window():
-            # add road_collision
-            if self.__all_sides_collision__():
-                return True
-            return False
-
-        else:
-            return False
-
+    
     def __generate_straight_road_x__(self, x, y, road_orientation, x_fix, y_fix, img):
         if self.road_turn:
             if road_orientation:
@@ -245,8 +485,15 @@ class Map:
         # x_fix; y fix
         x += road_orientation*img.get_width()
         return x
+    
+    def __generate_straight_road_y__(self, x, y, direction, x_fix, y_fix, side_img):
+        side_mask = pygame.mask.from_surface(side_img)
+        self.images_masks.append((side_mask, x, y, x_fix, y_fix))
+        self.images.append((side_img, (x, y)))
+        y += direction*side_img.get_height()
+        return y
 
-    def step_straight_x(self, imgs=False, left=True, right=True,
+    def __step_straight_x__(self, imgs=False, left=True, right=True,
                         y_fix=False, x_fix=False, orientation_fix=1):
         '''x_fix = {x_right: some, x_left: some}'''
         '''y_fix = {y_right: some, y_left: some}'''
@@ -283,195 +530,3 @@ class Map:
                 self.x_left, self.y_left,
                 self.road_orientation*orientation_fix,
                 x_col_fix, y_col_fix, imgs['left'])
-
-    def horizontal_turn(self, orientation_fix=1, fix=0, test=False):
-        imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
-                'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
-        if self.road_turn and self.road_orientation == 1:
-            # right
-            if self.x_right > self.x_left:
-                if not self.was_right and not self.was_left:
-                    self.was_right = True
-                elif not self.was_right and self.was_left:
-                    self.was_right = True
-                elif self.was_right and self.was_left:
-                    self.y_left -= self.img_height
-                    self.y_right -= self.img_height
-                self.step_straight_y(right=False)  # left side up
-                y_fix = {
-                    'y_left': -self.img_height,
-                    'y_right': self.img_height
-                }
-                imgs = {'left': self.top_image, }
-                if self.y_right > self.y_left:
-                    imgs['right'] = self.bottom_image
-                else:
-                    imgs['right'] = self.top_image
-                self.step_straight_x(right=False, imgs=imgs, y_fix=y_fix)
-                self.step_straight_x(imgs=imgs)
-                self.changed = False
-            else:
-                imgs_up = {'right': self.right_side_up_img}
-                imgs['left'] = self.top_image
-                imgs['right'] = self.top_image
-                self.step_straight_y(left=False, imgs=imgs_up, extra_fix=-20)
-                self.y_left += self.img_height
-                self.x_left -= self.img_width
-                self.changed = True
-                self.step_straight_x(right=False, imgs=imgs)
-                self.y_left -= self.img_height
-                self.x_right += self.img_width
-                self.step_straight_x(imgs=imgs)
-                self.x_right += self.img_width
-                self.x_left += self.img_width
-                self.changed = False
-        elif self.road_turn and self.road_orientation == -1:
-            # left
-            
-            if self.x_right > self.x_left: 
-                if not self.was_right and not self.was_left:
-                    self.was_left = True
-                elif self.was_right and not self.was_left:
-                    self.was_left = True
-                elif self.was_right and self.was_left:
-                    self.y_left -= self.img_height
-                    self.y_right -= self.img_height
-                self.changed = True
-                self.step_straight_y(left=False)  # right side up\
-                y_fix = {
-                    'y_left': self.img_height,
-                    'y_right': self.img_height
-                }
-                x_fix = {
-                    'x_right': -self.img_width,
-                    'x_left': -self.img_width
-                }
-                # imgs={left: ....   right:...}
-                imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
-                        'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
-                self.step_straight_x(left=False, imgs=imgs,
-                                     y_fix=y_fix, x_fix=x_fix)
-                self.step_straight_x(imgs=imgs)
-            else:
-                imgs['right'] = self.top_image
-                imgs['left'] = self.top_image
-                imgs_up = {'left': self.right_side_up_img}
-                self.step_straight_y(right=False, imgs=imgs_up)
-                self.x_right -= self.img_width
-                self.y_left += 2*self.img_height
-                self.x_left -= self.img_width
-                self.changed = False
-                self.step_straight_x(right=False, imgs=imgs)
-                self.step_straight_x(imgs=imgs)
-                # if randint(0,1):
-                #     self.step_straight_x(imgs=imgs)
-                self.x_left += self.img_width
-                self.x_right += self.img_width
-                self.changed = False
-
-            # self.changed = False
-        elif not self.road_turn and self.road_orientation == -1:
-            # up
-            imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
-                    'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
-            if self.y_right < self.y_left:
-                self.step_straight_x(right=False, imgs=imgs)
-                self.x_left += self.img_width
-                self.x_right += self.img_width
-                self.y_left -= self.img_height
-                self.y_right -= self.img_height
-                self.step_straight_y()
-                self.step_straight_y(right=False)
-            else:  
-                imgs['right'] = self.top_image
-                self.step_straight_x(left=False, imgs=imgs, orientation_fix=-1)
-                self.y_left -= self.img_height
-                self.y_right -= self.img_height
-                self.step_straight_y(left=False, test=True)
-                self.step_straight_y()
-                self.y_left += self.img_height
-                self.y_right += self.img_height
-            if self.previos == 'left':
-                self.y_left += self.img_height
-                self.y_right += self.img_height
-            if self.was_right and not self.was_left:
-                    self.was_left = True
-            elif self.was_left and not self.was_right:
-                self.was_right = True
-
-        elif not self.road_turn and self.road_orientation == 1:
-            # down
-            imgs = {'left': self.top_image if self.y_left > self.y_right else self.bottom_image,
-                    'right': self.top_image if self.y_left > self.y_right else self.bottom_image, }
-            if self.y_right < self.y_left:
-                self.step_straight_x(left=False, imgs=imgs)
-                self.y_left -= self.img_height
-                self.y_right += self.img_height
-                self.step_straight_y()
-                self.step_straight_y(right=False)
-                self.x_left += self.img_width
-                self.x_right -= self.img_width
-            elif self.y_right > self.y_left:
-                imgs['left'] = self.top_image
-                self.step_straight_x(right=False, imgs=imgs)
-                self.step_straight_y()
-                self.step_straight_y(right=False, test=True)
-
-    def __road_collision__(self, road_image, x, y):
-        mask = pygame.mask.from_surface(road_image)
-        if self.road_turn:
-            if self.road_orientation:
-                x += 140
-        else:
-            if self.road_orientation:
-                y += 140
-        for i in self.images_masks:
-            image_x = i[1]
-            image_y = i[2]
-            img_mask = i[0]
-            offset = (int(-image_x+x), int(-image_y+y))
-            poi = img_mask.overlap(mask, offset)
-            if poi != None:
-                return False
-        else:
-            return True
-
-    def __all_sides_collision__(self):
-        # if error in some place -> change dir 
-        if self.road_turn:
-            if self.__road_collision__(
-                    self.bottom_image,
-                    self.x_right, self.y_right):
-                return True
-            if self.__road_collision__(
-                    self.bottom_image,
-                    self.x_left, self.y_left):
-                return True
-            self.road_orientation *= -1
-            if self.__road_collision__(
-                    self.bottom_image,
-                    self.x_right, self.y_right):
-                return True
-            if self.__road_collision__(
-                    self.bottom_image,
-                    self.x_left, self.y_left):
-                return True
-        else:
-            if self.__road_collision__(
-                    self.left_side_up_img,
-                    self.x_right, self.y_right):
-                return True
-            if self.__road_collision__(
-                    self.left_side_up_img,
-                    self.x_left, self.y_left):
-                    return True
-            self.road_orientation *= -1
-            if self.__road_collision__(
-                    self.left_side_up_img,
-                    self.x_right, self.y_right):
-                return True
-            if self.__road_collision__(
-                    self.left_side_up_img,
-                    self.x_left, self.y_left):
-                    return True
-        return False
