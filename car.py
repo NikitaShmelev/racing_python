@@ -47,14 +47,6 @@ class MainCar:
         self.vel = max(self.vel - self.acceleration, -self.max_vel/2)
         self.move()
 
-    def update_path_point(self):
-        # score check
-        target = self.path[self.current_point]
-        rect = pygame.Rect(
-            self.x_pos, self.y_pos, self.img.get_width(), self.img.get_height())
-        if rect.collidepoint(*target):
-            self.current_point += 1
-
     def reduce_speed(self):
         self.vel = max(self.vel - self.acceleration / 2, 0)
         self.move()
