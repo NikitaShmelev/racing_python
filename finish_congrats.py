@@ -77,4 +77,4 @@ def congrats(window, main_car, drawText, MAIN_FONT):
         main_car.draw(window=window)
         time.sleep(0.001)
         pygame.display.update()
-    time.sleep(5)
+    

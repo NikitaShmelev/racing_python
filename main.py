@@ -16,7 +16,8 @@ window = pygame.display.set_mode((width, height))
 TEXTCOLOR = (255, 255, 255)
 clock = pygame.time.Clock()
 MAIN_FONT = pygame.font.SysFont("comicsans", 44)
-
+programIcon = pygame.image.load('images/icon_20x20.png')
+pygame.display.set_icon(programIcon)
 
 def drawText(text, font, surface, x, y):
     textobj = font.render(text, 1, TEXTCOLOR)
@@ -223,16 +224,16 @@ def gameloop():
         ##############################
         # testowy kawałek
         # nie nie dołączać do sprawozdania
-        for i in range(0, width, 140):
-            pygame.draw.line(window, 'red', (i, 0), (i, height))
-            drawText(f'{i}', pygame.font.SysFont(
-                "comicsans", 40), window, i, 10)
-        for i in range(0, height, 140):
-            pygame.draw.line(window, 'red', (0, i), (width, i))
-            drawText(f'{i}', pygame.font.SysFont(
-                "comicsans", 40), window, 10, i)
-        drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=} {round(main_car.vel)=}',
-                 MAIN_FONT, window, 308, 900)  # draw some text in window
+        # for i in range(0, width, 140):
+        #     pygame.draw.line(window, 'red', (i, 0), (i, height))
+        #     drawText(f'{i}', pygame.font.SysFont(
+        #         "comicsans", 40), window, i, 10)
+        # for i in range(0, height, 140):
+        #     pygame.draw.line(window, 'red', (0, i), (width, i))
+        #     drawText(f'{i}', pygame.font.SysFont(
+        #         "comicsans", 40), window, 10, i)
+        # drawText(f'{round(main_car.x_pos)=} {round(main_car.y_pos)=} {round(main_car.vel)=}',
+        #          MAIN_FONT, window, 308, 900)  # draw some text in window
         ##############################
         if main_car.time != 0:
             # timer output edit
@@ -245,9 +246,13 @@ def gameloop():
             drawText(f'{current_time}',
                      MAIN_FONT, window, 0, 45)
         if handle_collision(main_car, map.images_masks, finish):
+            
             congrats(window, main_car, drawText, MAIN_FONT)
+            drawText(f'{current_time}', MAIN_FONT, window, 750, 500)
             main_car, map = create_objects()
             finish = generate_map(window, map)
+            pygame.display.update()
+            time.sleep(5)
         pygame.display.update()
 
 
